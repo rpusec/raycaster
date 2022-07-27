@@ -1,0 +1,10 @@
+{
+    "name": "raycaster",
+    "version": "1.0.0",
+    "description": "Test raycaster",
+    "author": "rpusec",
+    "devDependencies": {
+      "pixi.js": "6.2.2"
+    }
+  }
+  
