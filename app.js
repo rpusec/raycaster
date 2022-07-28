@@ -1,5 +1,5 @@
 const BLOCK_DIM = 20;
-const WALL_HEIGHT = 200;
+const WALL_HEIGHT = 300;
 
 window.onload = function(){
     let canvas2d = document.createElement('canvas');
@@ -23,7 +23,7 @@ window.onload = function(){
         const playerSpeed = 1;
         const turningSpeed = .01;
         const raySpace = .0025;
-        const fov = 120;
+        const fov = 140;
         // const fov = 1;
 
         let blocks = [];
@@ -46,6 +46,9 @@ window.onload = function(){
             right: false,
         };
 
+        let running = false;
+        let strafe = false;
+
         const handleWalking = (e) => {
             let isKeyDown = e.type == 'keydown';
             switch(e.code){
@@ -62,6 +65,10 @@ window.onload = function(){
                     walking.down = isKeyDown;
                     break;
             }
+            running = e.shiftKey;
+            strafe = e.altKey;
+            e.preventDefault();
+            
         }
 
         document.addEventListener('keydown', handleWalking);
@@ -84,19 +91,10 @@ window.onload = function(){
 
             let maxSegmentWidth = screenDim.width / rays.length;
 
-            rays.forEach((item, index) => {
+            rays.forEach((dist, index) => {
                 let segmentWidth = maxSegmentWidth;
 
-                // if(item.angleDiff <= 90){
-                //     segmentWidth *= item.angleDiff / 90;
-                // }
-                // else{
-                //     let temp = item.angleDiff - 90;
-                //     temp = 90 - temp;
-                //     segmentWidth *= temp / 90;
-                // }
-
-                let segmentHeight = WALL_HEIGHT - (item.dist / 2.75);
+                let segmentHeight = WALL_HEIGHT - (dist / 3);
                 if(segmentHeight < 0) segmentHeight = 0;
 
                 let x = index * maxSegmentWidth;
@@ -121,16 +119,32 @@ window.onload = function(){
             let moveCos = Math.cos(playerAngle);
             let moveSin = Math.sin(playerAngle);
 
+            let _playerSpeed = playerSpeed * (running ? 4 : 1);
+            let _turningSpeed = turningSpeed * (running ? 4 : 1);
+
             if(walking.up) {
-                playerPosition.x += moveCos * playerSpeed;
-                playerPosition.y += moveSin * playerSpeed;
+                playerPosition.x += moveCos * _playerSpeed;
+                playerPosition.y += moveSin * _playerSpeed;
             }
             if(walking.down) {
-                playerPosition.x -= moveCos * playerSpeed;
-                playerPosition.y -= moveSin * playerSpeed;
+                playerPosition.x -= moveCos * _playerSpeed;
+                playerPosition.y -= moveSin * _playerSpeed;
             }
-            if(turning.left) playerAngle -= turningSpeed;
-            if(turning.right) playerAngle += turningSpeed;
+
+            if(strafe){
+                if(turning.left) {
+                    playerPosition.x += Math.cos(playerAngle + Math.PI / 2) * _playerSpeed;
+                    playerPosition.y += Math.sin(playerAngle + Math.PI / 2) * _playerSpeed;
+                }
+                if(turning.right) {
+                    playerPosition.x -= Math.cos(playerAngle + Math.PI / 2) * _playerSpeed;
+                    playerPosition.y -= Math.sin(playerAngle + Math.PI / 2) * _playerSpeed;
+                }
+            }
+            else{
+                if(turning.left) playerAngle += _turningSpeed;
+                if(turning.right) playerAngle -= _turningSpeed;
+            }
 
             ctx.clearRect(0, 0, screenDim.width, screenDim.height);
 
@@ -223,72 +237,7 @@ window.onload = function(){
                 ctx.stroke();
                 ctx.fill();
 
-                let wallAngle = 0;
-                // let angleDiff = 0;
-
-                // switch(closestRayPoint.dir){
-                //     case 'left' : 
-                //         wallAngle = Math.PI / 2;
-                //         // ctx.strokeStyle = "#0000FF";
-                //         // ctx.beginPath();
-                //         // ctx.moveTo(50, 50);
-                //         // ctx.lineTo(50 + Math.cos(wallAngle) * 100, 50 + Math.sin(wallAngle) * 100);
-                //         // ctx.stroke();
-                //         // ctx.fill();
-
-                //         angleDiff = calcAngleDiff(angle, wallAngle);
-                //         // ctx.fillStyle = "blue";
-                //         // ctx.font = "30px Arial";
-                //         // ctx.fillText('left' + angleDiff, lineToData.x, lineToData.y);
-                //     break;
-                //     case 'right' :
-                //         wallAngle = Math.PI / 2 + Math.PI;
-                //         // ctx.strokeStyle = "#0000FF";
-                //         // ctx.beginPath();
-                //         // ctx.moveTo(50, 50);
-                //         // ctx.lineTo(50 + Math.cos(wallAngle) * 100, 50 + Math.sin(wallAngle) * 100);
-                //         // ctx.stroke();
-                //         // ctx.fill();
-
-                //         angleDiff = calcAngleDiff(angle, wallAngle);
-                //         // ctx.fillStyle = "blue";
-                //         // ctx.font = "30px Arial";
-                //         // ctx.fillText('right' + angleDiff, lineToData.x, lineToData.y);
-                //     break;
-                //     case 'top' : 
-                //         wallAngle = 0;
-                //         // ctx.strokeStyle = "#0000FF";
-                //         // ctx.beginPath();
-                //         // ctx.moveTo(60, 90);
-                //         // ctx.lineTo(60 + Math.cos(wallAngle) * 100, 90 + Math.sin(wallAngle) * 100);
-                //         // ctx.stroke();
-                //         // ctx.fill();
-
-                //         angleDiff = calcAngleDiff(angle, wallAngle);
-                //         // ctx.fillStyle = "blue";
-                //         // ctx.font = "30px Arial";
-                //         // ctx.fillText('top' + angleDiff, lineToData.x, lineToData.y);
-                //     break;
-                //     case 'bottom' :
-                //         wallAngle = Math.PI;
-                //         // ctx.strokeStyle = "#0000FF";
-                //         // ctx.beginPath();
-                //         // ctx.moveTo(60, 90);
-                //         // ctx.lineTo(60 + Math.cos(wallAngle) * 100, 90 + Math.sin(wallAngle) * 100);
-                //         // ctx.stroke();
-                //         // ctx.fill();
-
-                //         angleDiff = calcAngleDiff(angle, wallAngle);
-                //         // ctx.fillStyle = "blue";
-                //         // ctx.font = "30px Arial";
-                //         // ctx.fillText('bottom' + angleDiff, lineToData.x, lineToData.y);
-                //     break;
-                // }
-
-                return {
-                    // angleDiff: angleDiff,
-                    dist: closestDist,
-                };
+                return closestDist;
             }
 
             return rays;
