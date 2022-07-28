@@ -22,8 +22,9 @@ window.onload = function(){
 
         const playerSpeed = 1;
         const turningSpeed = .01;
-        const fov = 120;
         const raySpace = .0025;
+        // const fov = 120;
+        const fov = 1;
 
         let blocks = [];
         let firstDraw = false;
@@ -79,12 +80,12 @@ window.onload = function(){
         requestAnimationFrame(draw);
 
         function draw3d(rays){
-            ctx3d.clearRect(0, 0, canvas3d.width, canvas3d.height);
+            ctx3d.clearRect(0, 0, screenDim.width, screenDim.height);
 
             let segmentWidth = screenDim.width / rays.length;
 
-            rays.forEach((dist, index) => {
-                let segmentHeight = WALL_HEIGHT - (dist / 2);
+            rays.forEach((item, index) => {
+                let segmentHeight = WALL_HEIGHT - (item.dist / 2);
                 if(segmentHeight < 0) segmentHeight = 0;
 
                 let x = index * segmentWidth;
@@ -115,7 +116,7 @@ window.onload = function(){
             if(turning.left) playerAngle -= turningSpeed;
             if(turning.right) playerAngle += turningSpeed;
 
-            ctx.clearRect(0, 0, canvas2d.width, canvas2d.height);
+            ctx.clearRect(0, 0, screenDim.width, screenDim.height);
 
             ctx.fillStyle = "#000000";
 
@@ -149,7 +150,7 @@ window.onload = function(){
                 rays.push(getAndDrawRays(playerAngle + i * raySpace));
             }
 
-            for(let i = 0; i >= (fov * -1); i--){
+            for(let i = 0; i > (fov * -1); i--){
                 rays.push(getAndDrawRays(playerAngle + i * raySpace));
             }
 
@@ -168,41 +169,131 @@ window.onload = function(){
                 let rayPoints = [];
 
                 blocks.forEach(block => {
-                    [
-                        [rayFromX, rayFromY, rayToX, rayToY, block.x, block.y, block.x, block.y + block.height],
-                        [rayFromX, rayFromY, rayToX, rayToY, block.x, block.y, block.x + block.width, block.y],
-                        [rayFromX, rayFromY, rayToX, rayToY, block.x + block.width, block.y, block.x + block.width, block.y + block.height],
-                        [rayFromX, rayFromY, rayToX, rayToY, block.x + block.width, block.y + block.height, block.x, block.y + block.height],
-                    ].forEach(args => {
-                        let rayPoint = getRayPoint(args);
-                        if(rayPoint) rayPoints.push(rayPoint);
+                    let rayConds = {
+                        left: [rayFromX, rayFromY, rayToX, rayToY, block.x, block.y, block.x, block.y + block.height],
+                        top: [rayFromX, rayFromY, rayToX, rayToY, block.x, block.y, block.x + block.width, block.y],
+                        right: [rayFromX, rayFromY, rayToX, rayToY, block.x + block.width, block.y, block.x + block.width, block.y + block.height],
+                        bottom: [rayFromX, rayFromY, rayToX, rayToY, block.x + block.width, block.y + block.height, block.x, block.y + block.height],
+                    }
+                    Object.keys(rayConds).forEach(dir => {
+                        let rayPoint = getRayPoint(rayConds[dir]);
+                        if(rayPoint) rayPoints.push({
+                            dir: dir,
+                            point: rayPoint,
+                        });
                     });
                 });
 
                 let closestRayPoint = rayPoints[0];
-                let closestDist = getDist(closestRayPoint.x, closestRayPoint.y, playerPosition.x, playerPosition.y);
+                let closestDist = getDist(closestRayPoint.point.x, closestRayPoint.point.y, playerPosition.x, playerPosition.y);
 
                 rayPoints.forEach(rayPoint => {
-                    let dist = getDist(rayPoint.x, rayPoint.y, playerPosition.x, playerPosition.y);
+                    let dist = getDist(rayPoint.point.x, rayPoint.point.y, playerPosition.x, playerPosition.y);
                     if(dist < closestDist){
                         closestRayPoint = rayPoint;
                         closestDist = dist;
                     }
                 });
 
+                let lineToData = {
+                    x: playerPosition.x + cos * closestDist,
+                    y: playerPosition.y + sin * closestDist,
+                };
+
                 ctx.strokeStyle = "#00FF00";
                 ctx.beginPath();
                 ctx.moveTo(playerPosition.x, playerPosition.y);
-                ctx.lineTo(playerPosition.x + cos * closestDist, playerPosition.y + sin * closestDist);
+                ctx.lineTo(lineToData.x, lineToData.y);
                 ctx.stroke();
                 ctx.fill();
 
-                return closestDist;
+                let wallAngle = 0;
+                let angleDiff = 0;
+
+                switch(closestRayPoint.dir){
+                    case 'left' : 
+                        wallAngle = Math.PI / 2;
+                        ctx.strokeStyle = "#0000FF";
+                        ctx.beginPath();
+                        ctx.moveTo(50, 50);
+                        ctx.lineTo(50 + Math.cos(wallAngle) * 100, 50 + Math.sin(wallAngle) * 100);
+                        ctx.stroke();
+                        ctx.fill();
+
+                        angleDiff = calcAngleDiff(angle, wallAngle);
+                        ctx.fillStyle = "blue";
+                        ctx.font = "30px Arial";
+                        ctx.fillText('left' + angleDiff, lineToData.x, lineToData.y);
+                    break;
+                    case 'right' :
+                        wallAngle = Math.PI / 2 + Math.PI;
+                        ctx.strokeStyle = "#0000FF";
+                        ctx.beginPath();
+                        ctx.moveTo(50, 50);
+                        ctx.lineTo(50 + Math.cos(wallAngle) * 100, 50 + Math.sin(wallAngle) * 100);
+                        ctx.stroke();
+                        ctx.fill();
+
+                        angleDiff = calcAngleDiff(angle, wallAngle);
+                        ctx.fillStyle = "blue";
+                        ctx.font = "30px Arial";
+                        ctx.fillText('right' + angleDiff, lineToData.x, lineToData.y);
+                    break;
+                    case 'top' : 
+                        wallAngle = 0;
+                        ctx.strokeStyle = "#0000FF";
+                        ctx.beginPath();
+                        ctx.moveTo(60, 90);
+                        ctx.lineTo(60 + Math.cos(wallAngle) * 100, 90 + Math.sin(wallAngle) * 100);
+                        ctx.stroke();
+                        ctx.fill();
+
+                        angleDiff = calcAngleDiff(angle, wallAngle);
+                        ctx.fillStyle = "blue";
+                        ctx.font = "30px Arial";
+                        ctx.fillText('top' + angleDiff, lineToData.x, lineToData.y);
+                    break;
+                    case 'bottom' :
+                        wallAngle = Math.PI;
+                        ctx.strokeStyle = "#0000FF";
+                        ctx.beginPath();
+                        ctx.moveTo(60, 90);
+                        ctx.lineTo(60 + Math.cos(wallAngle) * 100, 90 + Math.sin(wallAngle) * 100);
+                        ctx.stroke();
+                        ctx.fill();
+
+                        angleDiff = calcAngleDiff(angle, wallAngle);
+                        ctx.fillStyle = "blue";
+                        ctx.font = "30px Arial";
+                        ctx.fillText('bottom' + angleDiff, lineToData.x, lineToData.y);
+                    break;
+                }
+
+                return {
+                    angleDiff: angleDiff,
+                    dist: closestDist,
+                };
             }
 
             return rays;
         }
     });
+}
+
+function calcAngleDiff(a1, a2){
+    if(a1 < 0) a1 += Math.PI * 2;
+    if(a2 < 0) a2 += Math.PI * 2;
+
+    a1 = (a1*180/Math.PI) % 360;
+    a2 = (a2*180/Math.PI) % 360;
+
+    if(Math.floor(a1 - a2) > 180){
+        if(a1 < a2) a1 += 360;
+        if(a2 < a1) a2 += 360;
+    }
+
+    if(a1 > a2) return a1 - a2;
+    return a2 - a1;
 }
 
 function getImageContext(url) {
