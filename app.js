@@ -185,7 +185,7 @@ window.onload = function(){
                 let rm1 = blocksWithPos[`${block.c}-${block.r-1}`];
                 let rp1 = blocksWithPos[`${block.c}-${block.r+1}`];
 
-                if(cm1 && cp1 && !rm1 && !rp1){
+                if(cm1 && cp1){
                     [cm1, block, cp1].forEach(b => {
                         if(collisionDetection()){
                             let tmpY = playerPosition.y;
@@ -217,7 +217,7 @@ window.onload = function(){
                     });
                 }
 
-                if(!cm1 && !cp1 && rm1 && rp1){
+                if(rm1 && rp1){
                     [rm1, block, rp1].forEach(b => {
                         if(collisionDetection()){
                             let tmpX = playerPosition.x;
