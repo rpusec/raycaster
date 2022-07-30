@@ -3,7 +3,7 @@ const MAX_SHADOW_PERC = .25;
 const PLAYER_SPEED = 1;
 const TURNING_SPEED = .01;
 const RAY_SPACE = .0025;
-const RAY_AMOUNT_ONE_SIDE = 140;
+const RAY_AMOUNT_ONE_SIDE = 170;
 
 window.onload = function(){
     let canvas2d = document.createElement('canvas');
