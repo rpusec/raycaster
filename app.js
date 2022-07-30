@@ -5,350 +5,332 @@ const RAY_SPACE = .0025;
 const RAY_AMOUNT_ONE_SIDE = 170;
 const RAYS_SKIPPED_TO_DRAW_2D = 20;
 
-window.onload = function(){
-    let playerAngle = 0;
+let playerAngle = 0;
 
-    let canvas2d = document.createElement('canvas');
-    document.body.appendChild(canvas2d);
+let canvas2d = document.createElement('canvas');
+document.body.appendChild(canvas2d);
 
-    let canvas3d = document.createElement('canvas');
-    document.body.appendChild(canvas3d);
+let canvas3d = document.createElement('canvas');
+document.body.appendChild(canvas3d);
 
-    canvas3d.addEventListener('click', () => canvas3d.requestPointerLock());
+canvas3d.addEventListener('click', () => canvas3d.requestPointerLock());
 
-    canvas3d.addEventListener('mousemove', e => {
-        if(document.pointerLockElement !== canvas3d) return;
-        playerAngle -= e.movementX / 500;
-    });
+canvas3d.addEventListener('mousemove', e => {
+    if(document.pointerLockElement !== canvas3d) return;
+    playerAngle -= e.movementX / 500;
+});
 
-    getImageContext('level-data.png').then(imgData => {
-        let screenDim = {
-            width: imgData.width * BLOCK_DIM,
-            height: imgData.height * BLOCK_DIM,
-        };
+let imgData = await getImageContext('level-data.png');
 
-        canvas2d.setAttribute('width', screenDim.width);
-        canvas2d.setAttribute('height', screenDim.height);
+let screenDim = {
+    width: imgData.width * BLOCK_DIM,
+    height: imgData.height * BLOCK_DIM,
+};
 
-        canvas3d.setAttribute('width', screenDim.width);
-        canvas3d.setAttribute('height', screenDim.height);
+canvas2d.setAttribute('width', screenDim.width);
+canvas2d.setAttribute('height', screenDim.height);
 
-        let blocks = [];
-        let blocksWithPos = {};
+canvas3d.setAttribute('width', screenDim.width);
+canvas3d.setAttribute('height', screenDim.height);
 
-        let firstDraw = false;
+let blocks = [];
+let blocksWithPos = {};
 
-        let playerPosition = {
-            x: BLOCK_DIM * 2,
-            y: BLOCK_DIM * 2,
-        };
+let firstDraw = false;
 
-        let walking = {
-            up: false,
-            down: false,
-            left: false,
-            right: false,
-        };
+let playerPosition = {
+    x: BLOCK_DIM * 2,
+    y: BLOCK_DIM * 2,
+};
 
-        let running = false;
+let walking = {
+    up: false,
+    down: false,
+    left: false,
+    right: false,
+};
 
-        const handleWalking = (e) => {
-            let isKeyDown = e.type == 'keydown';
-            let unknownKey = true;
-            switch(e.code){
-                case 'KeyW' : 
-                    walking.up = isKeyDown;
-                    break;
-                case 'KeyA' : 
-                    walking.left = isKeyDown;
-                    break;
-                case 'KeyD' : 
-                    walking.right = isKeyDown;
-                    break;
-                case 'KeyS' : 
-                    walking.down = isKeyDown;
-                    break;
-                default: 
-                    unknownKey = false;
-            }
-            running = e.shiftKey;
-            unknownKey && e.preventDefault();
-        }
+let running = false;
 
-        document.addEventListener('keydown', handleWalking);
-        document.addEventListener('keyup', handleWalking);
+const handleWalking = (e) => {
+    let isKeyDown = e.type == 'keydown';
+    let unknownKey = true;
+    switch(e.code){
+        case 'KeyW' : 
+            walking.up = isKeyDown;
+            break;
+        case 'KeyA' : 
+            walking.left = isKeyDown;
+            break;
+        case 'KeyD' : 
+            walking.right = isKeyDown;
+            break;
+        case 'KeyS' : 
+            walking.down = isKeyDown;
+            break;
+        default: 
+            unknownKey = false;
+    }
+    running = e.shiftKey;
+    unknownKey && e.preventDefault();
+}
 
-        let ctx = canvas2d.getContext('2d');
-        let ctx3d = canvas3d.getContext('2d');
+document.addEventListener('keydown', handleWalking);
+document.addEventListener('keyup', handleWalking);
 
-        let canvas2dRes = canvas2d.width * canvas2d.height;
+let ctx = canvas2d.getContext('2d');
+let ctx3d = canvas3d.getContext('2d');
 
-        const draw = () => {
-            draw3d(draw2d());
-            requestAnimationFrame(draw);
-        }
+let canvas2dRes = canvas2d.width * canvas2d.height;
 
-        requestAnimationFrame(draw);
+const draw = () => {
+    draw3d(draw2d());
+    requestAnimationFrame(draw);
+}
 
-        function draw3d(rays){
-            ctx3d.clearRect(0, 0, screenDim.width, screenDim.height);
+requestAnimationFrame(draw);
 
-            let maxSegmentWidth = screenDim.width / rays.length;
+function draw3d(rays){
+    ctx3d.clearRect(0, 0, screenDim.width, screenDim.height);
 
-            rays.forEach((dist, index) => {
-                let segmentWidth = maxSegmentWidth;
+    let maxSegmentWidth = screenDim.width / rays.length;
 
-                let segmentHeight = (BLOCK_DIM / dist) * screenDim.width;
-                if(segmentHeight < 0) segmentHeight = 0;
+    rays.forEach((dist, index) => {
+        let segmentWidth = maxSegmentWidth;
 
-                let x = index * maxSegmentWidth;
-                let y = screenDim.height / 2 - segmentHeight / 2;
-                let width = segmentWidth;
-                let height = segmentHeight;
+        let segmentHeight = (BLOCK_DIM / dist) * screenDim.width;
+        if(segmentHeight < 0) segmentHeight = 0;
 
-                x = Math.ceil(x);
-                y = Math.ceil(y);
-                width = Math.ceil(width);
-                height = Math.ceil(height);
+        let x = index * maxSegmentWidth;
+        let y = screenDim.height / 2 - segmentHeight / 2;
+        let width = segmentWidth;
+        let height = segmentHeight;
 
-                ctx3d.fillStyle = "rgb(0, 255, 0)";
-                ctx3d.fillRect(x, y, width, height);
+        x = Math.ceil(x);
+        y = Math.ceil(y);
+        width = Math.ceil(width);
+        height = Math.ceil(height);
 
-                let shadowPerc = 1 - segmentHeight / 100;
-                if(shadowPerc > MAX_SHADOW_PERC) shadowPerc = MAX_SHADOW_PERC;
+        ctx3d.fillStyle = "rgb(0, 255, 0)";
+        ctx3d.fillRect(x, y, width, height);
 
-                ctx3d.fillStyle = `rgba(0, 0, 0, ${shadowPerc})`;
-                ctx3d.fillRect(x, y, width, height);
-            });
-        }
+        let shadowPerc = 1 - segmentHeight / 100;
+        if(shadowPerc > MAX_SHADOW_PERC) shadowPerc = MAX_SHADOW_PERC;
 
-        function draw2d(){
-            let moveCos = Math.cos(playerAngle);
-            let moveSin = Math.sin(playerAngle);
-
-            let _playerSpeed = PLAYER_SPEED * (running ? 4 : 1);
-
-            let playerPrevPos = {
-                x: playerPosition.x,
-                y: playerPosition.y,
-            };
-
-            if(walking.up) {
-                playerPosition.x += moveCos * _playerSpeed;
-                playerPosition.y += moveSin * _playerSpeed;
-            }
-            if(walking.down) {
-                playerPosition.x -= moveCos * _playerSpeed;
-                playerPosition.y -= moveSin * _playerSpeed;
-            }
-            if(walking.left) {
-                playerPosition.x += Math.cos(playerAngle + Math.PI / 2) * _playerSpeed;
-                playerPosition.y += Math.sin(playerAngle + Math.PI / 2) * _playerSpeed;
-            }
-            if(walking.right) {
-                playerPosition.x -= Math.cos(playerAngle + Math.PI / 2) * _playerSpeed;
-                playerPosition.y -= Math.sin(playerAngle + Math.PI / 2) * _playerSpeed;
-            }
-
-            ctx.clearRect(0, 0, screenDim.width, screenDim.height);
-
-            ctx.fillStyle = "#000000";
-
-            for(let c = 0; c < imgData.width; c++){
-                for(let r = 0; r < imgData.height; r++){
-    
-                    let data = imgData.context.getImageData(c, r, 1, 1).data;
-                    let color = `${data[0]}${data[1]}${data[2]}${data[3]}`;
-    
-                    if(color === '000255') {
-                        let block = {
-                            c: c,
-                            r: r,
-                            x: c * BLOCK_DIM,
-                            y: r * BLOCK_DIM,
-                            width: BLOCK_DIM,
-                            height: BLOCK_DIM,
-                        };
-                        ctx.fillRect(block.x, block.y, block.width, block.height);
-                        if(!firstDraw){
-                            blocks.push(block);
-                            blocksWithPos[`${c}-${r}`] = block;
-                        }
-                    }
-                }
-            }
-
-            blocks.every(block => {
-
-                let cm1 = blocksWithPos[`${block.c-1}-${block.r}`];
-                let cp1 = blocksWithPos[`${block.c+1}-${block.r}`];
-                let rm1 = blocksWithPos[`${block.c}-${block.r-1}`];
-                let rp1 = blocksWithPos[`${block.c}-${block.r+1}`];
-
-                if(cm1 && cp1){
-                    [cm1, block, cp1].forEach(b => {
-                        if(collisionDetection()){
-                            let tmpY = playerPosition.y;
-                            playerPosition.y = playerPrevPos.y;
-                            if(!collisionDetection()) return true;
-        
-                            playerPosition.y = tmpY;
-
-                            let tmpX = playerPosition.x;
-                            playerPosition.x = playerPrevPos.x;
-                            if(!collisionDetection()) return true;
-        
-                            playerPosition.x = tmpX;
-        
-                            playerPosition.x = playerPrevPos.x;
-                            playerPosition.y = playerPrevPos.y;
-                            if(!collisionDetection()) return true;
-        
-                            playerPosition.x = tmpX;
-                            playerPosition.y = tmpY;
-                        }
-
-                        function collisionDetection(){
-                            return (
-                                playerPosition.x > b.x && playerPosition.x < b.x + b.width && 
-                                playerPosition.y > b.y && playerPosition.y < b.y + b.height
-                            );
-                        }
-                    });
-                }
-
-                if(rm1 && rp1){
-                    [rm1, block, rp1].forEach(b => {
-                        if(collisionDetection()){
-                            let tmpX = playerPosition.x;
-                            playerPosition.x = playerPrevPos.x;
-                            if(!collisionDetection()) return true;
-        
-                            playerPosition.x = tmpX;
-
-                            let tmpY = playerPosition.y;
-                            playerPosition.y = playerPrevPos.y;
-                            if(!collisionDetection()) return true;
-        
-                            playerPosition.y = tmpY;
-        
-                            playerPosition.x = playerPrevPos.x;
-                            playerPosition.y = playerPrevPos.y;
-                            if(!collisionDetection()) return true;
-        
-                            playerPosition.x = tmpX;
-                            playerPosition.y = tmpY;
-                        }
-
-                        function collisionDetection(){
-                            return (
-                                playerPosition.x > b.x && playerPosition.x < b.x + b.width && 
-                                playerPosition.y > b.y && playerPosition.y < b.y + b.height
-                            );
-                        }
-                    });
-                }
-
-                return true;
-            });
-    
-            ctx.fillStyle = "#FF0000";
-            ctx.beginPath();
-            ctx.arc(playerPosition.x, playerPosition.y, BLOCK_DIM / 2, 0, Math.PI * 2);
-            ctx.fill();
-
-            let rays = [];
-
-            let rayCount = 0;
-
-            for(let i = RAY_AMOUNT_ONE_SIDE - 1; i > 0; i--){
-                rays.push(getAndDrawRays(playerAngle + i * RAY_SPACE));
-            }
-
-            for(let i = 0; i > (RAY_AMOUNT_ONE_SIDE * -1); i--){
-                rays.push(getAndDrawRays(playerAngle + i * RAY_SPACE));
-            }
-
-            firstDraw = true;
-
-            function getAndDrawRays(angle){
-                let cos = Math.cos(angle);
-                let sin = Math.sin(angle);
-
-                let rayFromX = playerPosition.x;
-                let rayFromY = playerPosition.y;
-
-                let rayToX = playerPosition.x + cos * canvas2dRes;
-                let rayToY = playerPosition.y + sin * canvas2dRes;
-
-                let rayPoints = [];
-
-                blocks.forEach(block => {
-                    let rayConds = {
-                        left: [rayFromX, rayFromY, rayToX, rayToY, block.x, block.y, block.x, block.y + block.height],
-                        top: [rayFromX, rayFromY, rayToX, rayToY, block.x, block.y, block.x + block.width, block.y],
-                        right: [rayFromX, rayFromY, rayToX, rayToY, block.x + block.width, block.y, block.x + block.width, block.y + block.height],
-                        bottom: [rayFromX, rayFromY, rayToX, rayToY, block.x + block.width, block.y + block.height, block.x, block.y + block.height],
-                    }
-                    Object.keys(rayConds).forEach(dir => {
-                        let rayPoint = getRayPoint(rayConds[dir]);
-                        if(rayPoint) rayPoints.push({
-                            dir: dir,
-                            point: rayPoint,
-                        });
-                    });
-                });
-
-                let closestRayPoint = rayPoints[0];
-                let closestDist = getDist(closestRayPoint.point.x, closestRayPoint.point.y, playerPosition.x, playerPosition.y);
-
-                rayPoints.forEach(rayPoint => {
-                    let dist = getDist(rayPoint.point.x, rayPoint.point.y, playerPosition.x, playerPosition.y);
-                    if(dist < closestDist){
-                        closestRayPoint = rayPoint;
-                        closestDist = dist;
-                    }
-                });
-
-                if((rayCount % RAYS_SKIPPED_TO_DRAW_2D) === 0){
-                    let lineToData = {
-                        x: playerPosition.x + cos * closestDist,
-                        y: playerPosition.y + sin * closestDist,
-                    };
-
-                    ctx.strokeStyle = "#00FF00";
-                    ctx.beginPath();
-                    ctx.moveTo(playerPosition.x, playerPosition.y);
-                    ctx.lineTo(lineToData.x, lineToData.y);
-                    ctx.stroke();
-                    ctx.fill();
-                }
-
-                rayCount++;
-
-                return closestDist;
-            }
-
-            return rays;
-        }
+        ctx3d.fillStyle = `rgba(0, 0, 0, ${shadowPerc})`;
+        ctx3d.fillRect(x, y, width, height);
     });
 }
 
-// function calcAngleDiff(a1, a2){
-//     if(a1 < 0) a1 += Math.PI * 2;
-//     if(a2 < 0) a2 += Math.PI * 2;
+function draw2d(){
+    let moveCos = Math.cos(playerAngle);
+    let moveSin = Math.sin(playerAngle);
 
-//     a1 = (a1*180/Math.PI) % 360;
-//     a2 = (a2*180/Math.PI) % 360;
+    let _playerSpeed = PLAYER_SPEED * (running ? 4 : 1);
 
-//     if(Math.floor(a1 - a2) > 180){
-//         if(a1 < a2) a1 += 360;
-//         if(a2 < a1) a2 += 360;
-//     }
+    let playerPrevPos = {
+        x: playerPosition.x,
+        y: playerPosition.y,
+    };
 
-//     if(a1 > a2) return a1 - a2;
-//     return a2 - a1;
-// }
+    if(walking.up) {
+        playerPosition.x += moveCos * _playerSpeed;
+        playerPosition.y += moveSin * _playerSpeed;
+    }
+    if(walking.down) {
+        playerPosition.x -= moveCos * _playerSpeed;
+        playerPosition.y -= moveSin * _playerSpeed;
+    }
+    if(walking.left) {
+        playerPosition.x += Math.cos(playerAngle + Math.PI / 2) * _playerSpeed;
+        playerPosition.y += Math.sin(playerAngle + Math.PI / 2) * _playerSpeed;
+    }
+    if(walking.right) {
+        playerPosition.x -= Math.cos(playerAngle + Math.PI / 2) * _playerSpeed;
+        playerPosition.y -= Math.sin(playerAngle + Math.PI / 2) * _playerSpeed;
+    }
+
+    ctx.clearRect(0, 0, screenDim.width, screenDim.height);
+
+    ctx.fillStyle = "#000000";
+
+    for(let c = 0; c < imgData.width; c++){
+        for(let r = 0; r < imgData.height; r++){
+
+            let data = imgData.context.getImageData(c, r, 1, 1).data;
+            let color = `${data[0]}${data[1]}${data[2]}${data[3]}`;
+
+            if(color === '000255') {
+                let block = {
+                    c: c,
+                    r: r,
+                    x: c * BLOCK_DIM,
+                    y: r * BLOCK_DIM,
+                    width: BLOCK_DIM,
+                    height: BLOCK_DIM,
+                };
+                ctx.fillRect(block.x, block.y, block.width, block.height);
+                if(!firstDraw){
+                    blocks.push(block);
+                    blocksWithPos[`${c}-${r}`] = block;
+                }
+            }
+        }
+    }
+
+    blocks.every(block => {
+
+        let cm1 = blocksWithPos[`${block.c-1}-${block.r}`];
+        let cp1 = blocksWithPos[`${block.c+1}-${block.r}`];
+        let rm1 = blocksWithPos[`${block.c}-${block.r-1}`];
+        let rp1 = blocksWithPos[`${block.c}-${block.r+1}`];
+
+        if(cm1 && cp1){
+            [cm1, block, cp1].forEach(b => {
+                if(collisionDetection()){
+                    let tmpY = playerPosition.y;
+                    playerPosition.y = playerPrevPos.y;
+                    if(!collisionDetection()) return true;
+
+                    playerPosition.y = tmpY;
+
+                    let tmpX = playerPosition.x;
+                    playerPosition.x = playerPrevPos.x;
+                    if(!collisionDetection()) return true;
+
+                    playerPosition.x = tmpX;
+
+                    playerPosition.x = playerPrevPos.x;
+                    playerPosition.y = playerPrevPos.y;
+                    if(!collisionDetection()) return true;
+
+                    playerPosition.x = tmpX;
+                    playerPosition.y = tmpY;
+                }
+
+                function collisionDetection(){
+                    return (
+                        playerPosition.x > b.x && playerPosition.x < b.x + b.width && 
+                        playerPosition.y > b.y && playerPosition.y < b.y + b.height
+                    );
+                }
+            });
+        }
+
+        if(rm1 && rp1){
+            [rm1, block, rp1].forEach(b => {
+                if(collisionDetection()){
+                    let tmpX = playerPosition.x;
+                    playerPosition.x = playerPrevPos.x;
+                    if(!collisionDetection()) return true;
+
+                    playerPosition.x = tmpX;
+
+                    let tmpY = playerPosition.y;
+                    playerPosition.y = playerPrevPos.y;
+                    if(!collisionDetection()) return true;
+
+                    playerPosition.y = tmpY;
+
+                    playerPosition.x = playerPrevPos.x;
+                    playerPosition.y = playerPrevPos.y;
+                    if(!collisionDetection()) return true;
+
+                    playerPosition.x = tmpX;
+                    playerPosition.y = tmpY;
+                }
+
+                function collisionDetection(){
+                    return (
+                        playerPosition.x > b.x && playerPosition.x < b.x + b.width && 
+                        playerPosition.y > b.y && playerPosition.y < b.y + b.height
+                    );
+                }
+            });
+        }
+
+        return true;
+    });
+
+    ctx.fillStyle = "#FF0000";
+    ctx.beginPath();
+    ctx.arc(playerPosition.x, playerPosition.y, BLOCK_DIM / 2, 0, Math.PI * 2);
+    ctx.fill();
+
+    let rays = [];
+
+    let rayCount = 0;
+
+    for(let i = RAY_AMOUNT_ONE_SIDE - 1; i > 0; i--){
+        rays.push(getAndDrawRays(playerAngle + i * RAY_SPACE));
+    }
+
+    for(let i = 0; i > (RAY_AMOUNT_ONE_SIDE * -1); i--){
+        rays.push(getAndDrawRays(playerAngle + i * RAY_SPACE));
+    }
+
+    firstDraw = true;
+
+    function getAndDrawRays(angle){
+        let cos = Math.cos(angle);
+        let sin = Math.sin(angle);
+
+        let rayFromX = playerPosition.x;
+        let rayFromY = playerPosition.y;
+
+        let rayToX = playerPosition.x + cos * canvas2dRes;
+        let rayToY = playerPosition.y + sin * canvas2dRes;
+
+        let rayPoints = [];
+
+        blocks.forEach(block => {
+            let rayConds = {
+                left: [rayFromX, rayFromY, rayToX, rayToY, block.x, block.y, block.x, block.y + block.height],
+                top: [rayFromX, rayFromY, rayToX, rayToY, block.x, block.y, block.x + block.width, block.y],
+                right: [rayFromX, rayFromY, rayToX, rayToY, block.x + block.width, block.y, block.x + block.width, block.y + block.height],
+                bottom: [rayFromX, rayFromY, rayToX, rayToY, block.x + block.width, block.y + block.height, block.x, block.y + block.height],
+            }
+            Object.keys(rayConds).forEach(dir => {
+                let rayPoint = getRayPoint(rayConds[dir]);
+                if(rayPoint) rayPoints.push({
+                    dir: dir,
+                    point: rayPoint,
+                });
+            });
+        });
+
+        let closestRayPoint = rayPoints[0];
+        let closestDist = getDist(closestRayPoint.point.x, closestRayPoint.point.y, playerPosition.x, playerPosition.y);
+
+        rayPoints.forEach(rayPoint => {
+            let dist = getDist(rayPoint.point.x, rayPoint.point.y, playerPosition.x, playerPosition.y);
+            if(dist < closestDist){
+                closestRayPoint = rayPoint;
+                closestDist = dist;
+            }
+        });
+
+        if((rayCount % RAYS_SKIPPED_TO_DRAW_2D) === 0){
+            let lineToData = {
+                x: playerPosition.x + cos * closestDist,
+                y: playerPosition.y + sin * closestDist,
+            };
+
+            ctx.strokeStyle = "#00FF00";
+            ctx.beginPath();
+            ctx.moveTo(playerPosition.x, playerPosition.y);
+            ctx.lineTo(lineToData.x, lineToData.y);
+            ctx.stroke();
+            ctx.fill();
+        }
+
+        rayCount++;
+
+        return closestDist;
+    }
+
+    return rays;
+}
 
 function getImageContext(url) {
     return new Promise(resolve => {
