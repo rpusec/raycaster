@@ -126,6 +126,11 @@ window.onload = function(){
 
             let _playerSpeed = PLAYER_SPEED * (running ? 4 : 1);
 
+            let playerPrevPos = {
+                x: playerPosition.x,
+                y: playerPosition.y,
+            };
+
             if(walking.up) {
                 playerPosition.x += moveCos * _playerSpeed;
                 playerPosition.y += moveSin * _playerSpeed;
@@ -165,6 +170,41 @@ window.onload = function(){
                     }
                 }
             }
+
+            blocks.every(block => {
+                for(let i = 0; i < 70; i++){
+                    if(collisionDetection()){
+                        let tmpX = playerPosition.x;
+                        playerPosition.x = playerPrevPos.x;
+                        if(!collisionDetection()) return false;
+
+                        playerPosition.x = tmpX;
+
+                        let tmpY = playerPosition.y;
+                        playerPosition.y = playerPrevPos.y;
+                        if(!collisionDetection()) return false;
+
+                        playerPosition.y = tmpY;
+
+                        playerPosition.x = playerPrevPos.x;
+                        playerPosition.y = playerPrevPos.y;
+                        if(!collisionDetection()) return false;
+
+                        playerPosition.x = tmpX;
+                        playerPosition.y = tmpY;
+                    }
+                    else break;
+                }
+
+                function collisionDetection(){
+                    return (
+                        playerPosition.x >= block.x && playerPosition.x <= block.x + block.width && 
+                        playerPosition.y >= block.y && playerPosition.y <= block.y + block.height
+                    );
+                }
+
+                return true;
+            });
     
             ctx.fillStyle = "#FF0000";
             ctx.beginPath();
@@ -248,21 +288,21 @@ window.onload = function(){
     });
 }
 
-function calcAngleDiff(a1, a2){
-    if(a1 < 0) a1 += Math.PI * 2;
-    if(a2 < 0) a2 += Math.PI * 2;
+// function calcAngleDiff(a1, a2){
+//     if(a1 < 0) a1 += Math.PI * 2;
+//     if(a2 < 0) a2 += Math.PI * 2;
 
-    a1 = (a1*180/Math.PI) % 360;
-    a2 = (a2*180/Math.PI) % 360;
+//     a1 = (a1*180/Math.PI) % 360;
+//     a2 = (a2*180/Math.PI) % 360;
 
-    if(Math.floor(a1 - a2) > 180){
-        if(a1 < a2) a1 += 360;
-        if(a2 < a1) a2 += 360;
-    }
+//     if(Math.floor(a1 - a2) > 180){
+//         if(a1 < a2) a1 += 360;
+//         if(a2 < a1) a2 += 360;
+//     }
 
-    if(a1 > a2) return a1 - a2;
-    return a2 - a1;
-}
+//     if(a1 > a2) return a1 - a2;
+//     return a2 - a1;
+// }
 
 function getImageContext(url) {
     return new Promise(resolve => {
