@@ -1,5 +1,4 @@
 const BLOCK_DIM = 20;
-const WALL_HEIGHT = 300;
 
 window.onload = function(){
     let canvas2d = document.createElement('canvas');
@@ -23,8 +22,7 @@ window.onload = function(){
         const playerSpeed = 1;
         const turningSpeed = .01;
         const raySpace = .0025;
-        const fov = 140;
-        // const fov = 1;
+        const rayAmountOneSide = 140;
 
         let blocks = [];
         let firstDraw = false;
@@ -94,7 +92,7 @@ window.onload = function(){
             rays.forEach((dist, index) => {
                 let segmentWidth = maxSegmentWidth;
 
-                let segmentHeight = WALL_HEIGHT - (dist / 3);
+                let segmentHeight = (BLOCK_DIM / dist) * (screenDim.width / 2);
                 if(segmentHeight < 0) segmentHeight = 0;
 
                 let x = index * maxSegmentWidth;
@@ -110,7 +108,7 @@ window.onload = function(){
                 ctx3d.fillStyle = "rgb(0, 255, 0)";
                 ctx3d.fillRect(x, y, width, height);
 
-                ctx3d.fillStyle = `rgba(0, 0, 0, ${1 - segmentHeight / WALL_HEIGHT})`;
+                ctx3d.fillStyle = `rgba(0, 0, 0, ${1 - segmentHeight / BLOCK_DIM})`;
                 ctx3d.fillRect(x, y, width, height);
             });
         }
@@ -176,11 +174,11 @@ window.onload = function(){
 
             let rays = [];
 
-            for(let i = fov - 1; i > 0; i--){
+            for(let i = rayAmountOneSide - 1; i > 0; i--){
                 rays.push(getAndDrawRays(playerAngle + i * raySpace));
             }
 
-            for(let i = 0; i > (fov * -1); i--){
+            for(let i = 0; i > (rayAmountOneSide * -1); i--){
                 rays.push(getAndDrawRays(playerAngle + i * raySpace));
             }
 
