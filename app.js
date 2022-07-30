@@ -1,4 +1,9 @@
 const BLOCK_DIM = 20;
+const MAX_SHADOW_PERC = .25;
+const PLAYER_SPEED = 1;
+const TURNING_SPEED = .01;
+const RAY_SPACE = .0025;
+const RAY_AMOUNT_ONE_SIDE = 140;
 
 window.onload = function(){
     let canvas2d = document.createElement('canvas');
@@ -18,11 +23,6 @@ window.onload = function(){
 
         canvas3d.setAttribute('width', screenDim.width);
         canvas3d.setAttribute('height', screenDim.height);
-
-        const playerSpeed = 1;
-        const turningSpeed = .01;
-        const raySpace = .0025;
-        const rayAmountOneSide = 140;
 
         let blocks = [];
         let firstDraw = false;
@@ -92,7 +92,7 @@ window.onload = function(){
             rays.forEach((dist, index) => {
                 let segmentWidth = maxSegmentWidth;
 
-                let segmentHeight = (BLOCK_DIM / dist) * (screenDim.width / 2);
+                let segmentHeight = (BLOCK_DIM / dist) * screenDim.width;
                 if(segmentHeight < 0) segmentHeight = 0;
 
                 let x = index * maxSegmentWidth;
@@ -108,7 +108,10 @@ window.onload = function(){
                 ctx3d.fillStyle = "rgb(0, 255, 0)";
                 ctx3d.fillRect(x, y, width, height);
 
-                ctx3d.fillStyle = `rgba(0, 0, 0, ${1 - segmentHeight / BLOCK_DIM})`;
+                let shadowPerc = 1 - segmentHeight / 100;
+                if(shadowPerc > MAX_SHADOW_PERC) shadowPerc = MAX_SHADOW_PERC;
+
+                ctx3d.fillStyle = `rgba(0, 0, 0, ${shadowPerc})`;
                 ctx3d.fillRect(x, y, width, height);
             });
         }
@@ -117,8 +120,8 @@ window.onload = function(){
             let moveCos = Math.cos(playerAngle);
             let moveSin = Math.sin(playerAngle);
 
-            let _playerSpeed = playerSpeed * (running ? 4 : 1);
-            let _turningSpeed = turningSpeed * (running ? 4 : 1);
+            let _playerSpeed = PLAYER_SPEED * (running ? 4 : 1);
+            let _turningSpeed = TURNING_SPEED * (running ? 4 : 1);
 
             if(walking.up) {
                 playerPosition.x += moveCos * _playerSpeed;
@@ -174,12 +177,12 @@ window.onload = function(){
 
             let rays = [];
 
-            for(let i = rayAmountOneSide - 1; i > 0; i--){
-                rays.push(getAndDrawRays(playerAngle + i * raySpace));
+            for(let i = RAY_AMOUNT_ONE_SIDE - 1; i > 0; i--){
+                rays.push(getAndDrawRays(playerAngle + i * RAY_SPACE));
             }
 
-            for(let i = 0; i > (rayAmountOneSide * -1); i--){
-                rays.push(getAndDrawRays(playerAngle + i * raySpace));
+            for(let i = 0; i > (RAY_AMOUNT_ONE_SIDE * -1); i--){
+                rays.push(getAndDrawRays(playerAngle + i * RAY_SPACE));
             }
 
             firstDraw = true;
