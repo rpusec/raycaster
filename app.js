@@ -1,16 +1,25 @@
 const BLOCK_DIM = 20;
 const MAX_SHADOW_PERC = .25;
 const PLAYER_SPEED = 1;
-const TURNING_SPEED = .01;
 const RAY_SPACE = .0025;
 const RAY_AMOUNT_ONE_SIDE = 170;
+const RAYS_SKIPPED_TO_DRAW_2D = 20;
 
 window.onload = function(){
+    let playerAngle = 0;
+
     let canvas2d = document.createElement('canvas');
     document.body.appendChild(canvas2d);
 
     let canvas3d = document.createElement('canvas');
     document.body.appendChild(canvas3d);
+
+    canvas3d.addEventListener('click', () => canvas3d.requestPointerLock());
+
+    canvas3d.addEventListener('mousemove', e => {
+        if(document.pointerLockElement !== canvas3d) return;
+        playerAngle -= e.movementX / 500;
+    });
 
     getImageContext('level-data.png').then(imgData => {
         let screenDim = {
@@ -32,41 +41,36 @@ window.onload = function(){
             y: BLOCK_DIM * 2,
         };
 
-        let playerAngle = 0;
-
         let walking = {
             up: false,
             down: false,
-        };
-
-        let turning = {
             left: false,
             right: false,
         };
 
         let running = false;
-        let strafe = false;
 
         const handleWalking = (e) => {
             let isKeyDown = e.type == 'keydown';
+            let unknownKey = true;
             switch(e.code){
                 case 'KeyW' : 
                     walking.up = isKeyDown;
                     break;
                 case 'KeyA' : 
-                    turning.left = isKeyDown;
+                    walking.left = isKeyDown;
                     break;
                 case 'KeyD' : 
-                    turning.right = isKeyDown;
+                    walking.right = isKeyDown;
                     break;
                 case 'KeyS' : 
                     walking.down = isKeyDown;
                     break;
+                default: 
+                    unknownKey = false;
             }
             running = e.shiftKey;
-            strafe = e.altKey;
-            e.preventDefault();
-            
+            unknownKey && e.preventDefault();
         }
 
         document.addEventListener('keydown', handleWalking);
@@ -121,7 +125,6 @@ window.onload = function(){
             let moveSin = Math.sin(playerAngle);
 
             let _playerSpeed = PLAYER_SPEED * (running ? 4 : 1);
-            let _turningSpeed = TURNING_SPEED * (running ? 4 : 1);
 
             if(walking.up) {
                 playerPosition.x += moveCos * _playerSpeed;
@@ -131,20 +134,13 @@ window.onload = function(){
                 playerPosition.x -= moveCos * _playerSpeed;
                 playerPosition.y -= moveSin * _playerSpeed;
             }
-
-            if(strafe){
-                if(turning.left) {
-                    playerPosition.x += Math.cos(playerAngle + Math.PI / 2) * _playerSpeed;
-                    playerPosition.y += Math.sin(playerAngle + Math.PI / 2) * _playerSpeed;
-                }
-                if(turning.right) {
-                    playerPosition.x -= Math.cos(playerAngle + Math.PI / 2) * _playerSpeed;
-                    playerPosition.y -= Math.sin(playerAngle + Math.PI / 2) * _playerSpeed;
-                }
+            if(walking.left) {
+                playerPosition.x += Math.cos(playerAngle + Math.PI / 2) * _playerSpeed;
+                playerPosition.y += Math.sin(playerAngle + Math.PI / 2) * _playerSpeed;
             }
-            else{
-                if(turning.left) playerAngle += _turningSpeed;
-                if(turning.right) playerAngle -= _turningSpeed;
+            if(walking.right) {
+                playerPosition.x -= Math.cos(playerAngle + Math.PI / 2) * _playerSpeed;
+                playerPosition.y -= Math.sin(playerAngle + Math.PI / 2) * _playerSpeed;
             }
 
             ctx.clearRect(0, 0, screenDim.width, screenDim.height);
@@ -176,6 +172,8 @@ window.onload = function(){
             ctx.fill();
 
             let rays = [];
+
+            let rayCount = 0;
 
             for(let i = RAY_AMOUNT_ONE_SIDE - 1; i > 0; i--){
                 rays.push(getAndDrawRays(playerAngle + i * RAY_SPACE));
@@ -226,17 +224,21 @@ window.onload = function(){
                     }
                 });
 
-                let lineToData = {
-                    x: playerPosition.x + cos * closestDist,
-                    y: playerPosition.y + sin * closestDist,
-                };
+                if((rayCount % RAYS_SKIPPED_TO_DRAW_2D) === 0){
+                    let lineToData = {
+                        x: playerPosition.x + cos * closestDist,
+                        y: playerPosition.y + sin * closestDist,
+                    };
 
-                ctx.strokeStyle = "#00FF00";
-                ctx.beginPath();
-                ctx.moveTo(playerPosition.x, playerPosition.y);
-                ctx.lineTo(lineToData.x, lineToData.y);
-                ctx.stroke();
-                ctx.fill();
+                    ctx.strokeStyle = "#00FF00";
+                    ctx.beginPath();
+                    ctx.moveTo(playerPosition.x, playerPosition.y);
+                    ctx.lineTo(lineToData.x, lineToData.y);
+                    ctx.stroke();
+                    ctx.fill();
+                }
+
+                rayCount++;
 
                 return closestDist;
             }
