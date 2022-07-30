@@ -179,47 +179,75 @@ window.onload = function(){
             }
 
             blocks.every(block => {
-                [
-                    block,
-                    blocksWithPos[`${block.c+1}-${block.r}`],
-                    blocksWithPos[`${block.c-1}-${block.r}`],
-                    blocksWithPos[`${block.c}-${block.r+1}`],
-                    blocksWithPos[`${block.c}-${block.r-1}`],
-                    blocksWithPos[`${block.c-1}-${block.r-1}`],
-                    blocksWithPos[`${block.c+1}-${block.r+1}`],
-                    blocksWithPos[`${block.c+1}-${block.r-1}`],
-                    blocksWithPos[`${block.c-1}-${block.r+1}`],
-                ].forEach(b => {
-                    if(!b) return true;
 
-                    if(collisionDetection()){
-                        let tmpY = playerPosition.y;
-                        playerPosition.y = playerPrevPos.y;
-                        if(!collisionDetection()) return true;
-    
-                        playerPosition.y = tmpY;
+                let cm1 = blocksWithPos[`${block.c-1}-${block.r}`];
+                let cp1 = blocksWithPos[`${block.c+1}-${block.r}`];
+                let rm1 = blocksWithPos[`${block.c}-${block.r-1}`];
+                let rp1 = blocksWithPos[`${block.c}-${block.r+1}`];
 
-                        let tmpX = playerPosition.x;
-                        playerPosition.x = playerPrevPos.x;
-                        if(!collisionDetection()) return true;
-    
-                        playerPosition.x = tmpX;
-    
-                        playerPosition.x = playerPrevPos.x;
-                        playerPosition.y = playerPrevPos.y;
-                        if(!collisionDetection()) return true;
-    
-                        playerPosition.x = tmpX;
-                        playerPosition.y = tmpY;
-                    }
+                if(cm1 && cp1 && !rm1 && !rp1){
+                    [cm1, block, cp1].forEach(b => {
+                        if(collisionDetection()){
+                            let tmpY = playerPosition.y;
+                            playerPosition.y = playerPrevPos.y;
+                            if(!collisionDetection()) return true;
+        
+                            playerPosition.y = tmpY;
 
-                    function collisionDetection(){
-                        return (
-                            playerPosition.x > b.x && playerPosition.x < b.x + b.width && 
-                            playerPosition.y > b.y && playerPosition.y < b.y + b.height
-                        );
-                    }
-                });
+                            let tmpX = playerPosition.x;
+                            playerPosition.x = playerPrevPos.x;
+                            if(!collisionDetection()) return true;
+        
+                            playerPosition.x = tmpX;
+        
+                            playerPosition.x = playerPrevPos.x;
+                            playerPosition.y = playerPrevPos.y;
+                            if(!collisionDetection()) return true;
+        
+                            playerPosition.x = tmpX;
+                            playerPosition.y = tmpY;
+                        }
+
+                        function collisionDetection(){
+                            return (
+                                playerPosition.x > b.x && playerPosition.x < b.x + b.width && 
+                                playerPosition.y > b.y && playerPosition.y < b.y + b.height
+                            );
+                        }
+                    });
+                }
+
+                if(!cm1 && !cp1 && rm1 && rp1){
+                    [rm1, block, rp1].forEach(b => {
+                        if(collisionDetection()){
+                            let tmpX = playerPosition.x;
+                            playerPosition.x = playerPrevPos.x;
+                            if(!collisionDetection()) return true;
+        
+                            playerPosition.x = tmpX;
+
+                            let tmpY = playerPosition.y;
+                            playerPosition.y = playerPrevPos.y;
+                            if(!collisionDetection()) return true;
+        
+                            playerPosition.y = tmpY;
+        
+                            playerPosition.x = playerPrevPos.x;
+                            playerPosition.y = playerPrevPos.y;
+                            if(!collisionDetection()) return true;
+        
+                            playerPosition.x = tmpX;
+                            playerPosition.y = tmpY;
+                        }
+
+                        function collisionDetection(){
+                            return (
+                                playerPosition.x > b.x && playerPosition.x < b.x + b.width && 
+                                playerPosition.y > b.y && playerPosition.y < b.y + b.height
+                            );
+                        }
+                    });
+                }
 
                 return true;
             });
