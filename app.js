@@ -34,6 +34,8 @@ window.onload = function(){
         canvas3d.setAttribute('height', screenDim.height);
 
         let blocks = [];
+        let blocksWithPos = {};
+
         let firstDraw = false;
 
         let playerPosition = {
@@ -160,48 +162,64 @@ window.onload = function(){
     
                     if(color === '000255') {
                         let block = {
+                            c: c,
+                            r: r,
                             x: c * BLOCK_DIM,
                             y: r * BLOCK_DIM,
                             width: BLOCK_DIM,
                             height: BLOCK_DIM,
                         };
                         ctx.fillRect(block.x, block.y, block.width, block.height);
-                        !firstDraw && blocks.push(block);
+                        if(!firstDraw){
+                            blocks.push(block);
+                            blocksWithPos[`${c}-${r}`] = block;
+                        }
                     }
                 }
             }
 
             blocks.every(block => {
-                for(let i = 0; i < 70; i++){
+                [
+                    block,
+                    blocksWithPos[`${block.c+1}-${block.r}`],
+                    blocksWithPos[`${block.c-1}-${block.r}`],
+                    blocksWithPos[`${block.c}-${block.r+1}`],
+                    blocksWithPos[`${block.c}-${block.r-1}`],
+                    blocksWithPos[`${block.c-1}-${block.r-1}`],
+                    blocksWithPos[`${block.c+1}-${block.r+1}`],
+                    blocksWithPos[`${block.c+1}-${block.r-1}`],
+                    blocksWithPos[`${block.c-1}-${block.r+1}`],
+                ].forEach(b => {
+                    if(!b) return true;
+
                     if(collisionDetection()){
-                        let tmpX = playerPosition.x;
-                        playerPosition.x = playerPrevPos.x;
-                        if(!collisionDetection()) return false;
-
-                        playerPosition.x = tmpX;
-
                         let tmpY = playerPosition.y;
                         playerPosition.y = playerPrevPos.y;
-                        if(!collisionDetection()) return false;
-
+                        if(!collisionDetection()) return true;
+    
                         playerPosition.y = tmpY;
 
+                        let tmpX = playerPosition.x;
+                        playerPosition.x = playerPrevPos.x;
+                        if(!collisionDetection()) return true;
+    
+                        playerPosition.x = tmpX;
+    
                         playerPosition.x = playerPrevPos.x;
                         playerPosition.y = playerPrevPos.y;
-                        if(!collisionDetection()) return false;
-
+                        if(!collisionDetection()) return true;
+    
                         playerPosition.x = tmpX;
                         playerPosition.y = tmpY;
                     }
-                    else break;
-                }
 
-                function collisionDetection(){
-                    return (
-                        playerPosition.x >= block.x && playerPosition.x <= block.x + block.width && 
-                        playerPosition.y >= block.y && playerPosition.y <= block.y + block.height
-                    );
-                }
+                    function collisionDetection(){
+                        return (
+                            playerPosition.x > b.x && playerPosition.x < b.x + b.width && 
+                            playerPosition.y > b.y && playerPosition.y < b.y + b.height
+                        );
+                    }
+                });
 
                 return true;
             });
