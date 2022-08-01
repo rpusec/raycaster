@@ -123,11 +123,11 @@ function draw3d(rays){
         width = Math.ceil(width);
         height = Math.ceil(height);
 
-        for(let pixelY = 0; pixelY < segmentHeight; pixelY += texturePixelHeight){
+        for(let pixelY = 0; pixelY < height; pixelY += texturePixelHeight){
             let wallColorData = wallImgCachedPixels[`${textureMappingX}-${Math.floor(pixelY / texturePixelHeight)}`];
             if(!wallColorData) continue;
             ctx3d.fillStyle = `rgb(${wallColorData[0]}, ${wallColorData[1]}, ${wallColorData[2]})`;
-            ctx3d.fillRect(x, y + pixelY, width, texturePixelHeight);
+            ctx3d.fillRect(x, y + Math.ceil(pixelY), width, Math.ceil(texturePixelHeight));
         }
 
         let shadowPerc = 1 - segmentHeight / 100;
