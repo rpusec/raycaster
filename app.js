@@ -1,8 +1,8 @@
 const BLOCK_DIM = 20;
 const MAX_SHADOW_PERC = .25;
 const PLAYER_SPEED = 1;
-const RAY_SPACE = .0025;
-const RAY_AMOUNT_ONE_SIDE = 170;
+const RAY_SPACE = .005;
+const RAY_AMOUNT_ONE_SIDE = 100;
 const RAYS_SKIPPED_TO_DRAW_2D = 20;
 
 let playerAngle = 0;
@@ -127,7 +127,7 @@ function draw3d(rays){
             let wallColorData = wallImgCachedPixels[`${textureMappingX}-${Math.floor(pixelY / texturePixelHeight)}`];
             if(!wallColorData) continue;
             ctx3d.fillStyle = `rgb(${wallColorData[0]}, ${wallColorData[1]}, ${wallColorData[2]})`;
-            ctx3d.fillRect(x, y + Math.ceil(pixelY), width, Math.ceil(texturePixelHeight));
+            if(pixelY + texturePixelHeight < height) ctx3d.fillRect(x, y + Math.ceil(pixelY), width, Math.ceil(texturePixelHeight));
         }
 
         let shadowPerc = 1 - segmentHeight / 100;
