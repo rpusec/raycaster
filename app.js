@@ -20,11 +20,12 @@ canvas3d.addEventListener('mousemove', e => {
     playerAngle -= e.movementX / 500;
 });
 
-let imgData = await getImageContext('level-data.png');
+let mapImgData = await getImageContext('level-data.png');
+let wallImgData = await getImageContext('wall.png');
 
 let screenDim = {
-    width: imgData.width * BLOCK_DIM,
-    height: imgData.height * BLOCK_DIM,
+    width: mapImgData.width * BLOCK_DIM,
+    height: mapImgData.height * BLOCK_DIM,
 };
 
 canvas2d.setAttribute('width', screenDim.width);
@@ -95,11 +96,14 @@ function draw3d(rays){
 
     let maxSegmentWidth = screenDim.width / rays.length;
 
-    rays.forEach((dist, index) => {
+    rays.forEach((ray, index) => {
         let segmentWidth = maxSegmentWidth;
 
-        let segmentHeight = (BLOCK_DIM / dist) * screenDim.width;
+        let segmentHeight = (BLOCK_DIM / ray.dist) * screenDim.width;
         if(segmentHeight < 0) segmentHeight = 0;
+
+        let textureMappingX = Math.floor(wallImgData.width * ray.offset);
+        let texturePixelHeight = segmentHeight / wallImgData.height;
 
         let x = index * maxSegmentWidth;
         let y = screenDim.height / 2 - segmentHeight / 2;
@@ -111,8 +115,11 @@ function draw3d(rays){
         width = Math.ceil(width);
         height = Math.ceil(height);
 
-        ctx3d.fillStyle = "rgb(0, 255, 0)";
-        ctx3d.fillRect(x, y, width, height);
+        for(let pixelY = 0; pixelY < segmentHeight; pixelY += texturePixelHeight){
+            let wallColorData = wallImgData.context.getImageData(textureMappingX, pixelY / texturePixelHeight, 1, 1).data;
+            ctx3d.fillStyle = `rgb(${wallColorData[0]}, ${wallColorData[1]}, ${wallColorData[2]})`;
+            ctx3d.fillRect(x, y + pixelY, width, texturePixelHeight);
+        }
 
         let shadowPerc = 1 - segmentHeight / 100;
         if(shadowPerc > MAX_SHADOW_PERC) shadowPerc = MAX_SHADOW_PERC;
@@ -154,10 +161,10 @@ function draw2d(){
 
     ctx.fillStyle = "#000000";
 
-    for(let c = 0; c < imgData.width; c++){
-        for(let r = 0; r < imgData.height; r++){
+    for(let c = 0; c < mapImgData.width; c++){
+        for(let r = 0; r < mapImgData.height; r++){
 
-            let data = imgData.context.getImageData(c, r, 1, 1).data;
+            let data = mapImgData.context.getImageData(c, r, 1, 1).data;
             let color = `${data[0]}${data[1]}${data[2]}${data[3]}`;
 
             if(color === '000255') {
@@ -179,7 +186,6 @@ function draw2d(){
     }
 
     blocks.every(block => {
-
         let cm1 = blocksWithPos[`${block.c-1}-${block.r}`];
         let cp1 = blocksWithPos[`${block.c+1}-${block.r}`];
         let rm1 = blocksWithPos[`${block.c}-${block.r-1}`];
@@ -187,66 +193,59 @@ function draw2d(){
 
         if(cm1 && cp1){
             [cm1, block, cp1].forEach(b => {
-                if(collisionDetection()){
+                if(collisionDetection(b)){
                     let tmpY = playerPosition.y;
                     playerPosition.y = playerPrevPos.y;
-                    if(!collisionDetection()) return true;
+                    if(!collisionDetection(b)) return true;
 
                     playerPosition.y = tmpY;
 
                     let tmpX = playerPosition.x;
                     playerPosition.x = playerPrevPos.x;
-                    if(!collisionDetection()) return true;
+                    if(!collisionDetection(b)) return true;
 
                     playerPosition.x = tmpX;
 
                     playerPosition.x = playerPrevPos.x;
                     playerPosition.y = playerPrevPos.y;
-                    if(!collisionDetection()) return true;
+                    if(!collisionDetection(b)) return true;
 
                     playerPosition.x = tmpX;
                     playerPosition.y = tmpY;
-                }
-
-                function collisionDetection(){
-                    return (
-                        playerPosition.x > b.x && playerPosition.x < b.x + b.width && 
-                        playerPosition.y > b.y && playerPosition.y < b.y + b.height
-                    );
                 }
             });
         }
 
         if(rm1 && rp1){
             [rm1, block, rp1].forEach(b => {
-                if(collisionDetection()){
+                if(collisionDetection(b)){
                     let tmpX = playerPosition.x;
                     playerPosition.x = playerPrevPos.x;
-                    if(!collisionDetection()) return true;
+                    if(!collisionDetection(b)) return true;
 
                     playerPosition.x = tmpX;
 
                     let tmpY = playerPosition.y;
                     playerPosition.y = playerPrevPos.y;
-                    if(!collisionDetection()) return true;
+                    if(!collisionDetection(b)) return true;
 
                     playerPosition.y = tmpY;
 
                     playerPosition.x = playerPrevPos.x;
                     playerPosition.y = playerPrevPos.y;
-                    if(!collisionDetection()) return true;
+                    if(!collisionDetection(b)) return true;
 
                     playerPosition.x = tmpX;
                     playerPosition.y = tmpY;
                 }
-
-                function collisionDetection(){
-                    return (
-                        playerPosition.x > b.x && playerPosition.x < b.x + b.width && 
-                        playerPosition.y > b.y && playerPosition.y < b.y + b.height
-                    );
-                }
             });
+        }
+
+        function collisionDetection(b){
+            return (
+                playerPosition.x > b.x && playerPosition.x < b.x + b.width && 
+                playerPosition.y > b.y && playerPosition.y < b.y + b.height
+            );
         }
 
         return true;
@@ -291,10 +290,18 @@ function draw2d(){
                 bottom: [rayFromX, rayFromY, rayToX, rayToY, block.x + block.width, block.y + block.height, block.x, block.y + block.height],
             }
             Object.keys(rayConds).forEach(dir => {
-                let rayPoint = getRayPoint(rayConds[dir]);
-                if(rayPoint) rayPoints.push({
+                let args = rayConds[dir];
+                let rayPoint = getRayPoint(args);
+
+                if(!rayPoint) return;
+
+                let blockFromX = args[4];
+                let blockFromY = args[5];
+
+                rayPoints.push({
                     dir: dir,
                     point: rayPoint,
+                    offset: getDist(blockFromX, blockFromY, rayPoint.x, rayPoint.y) / BLOCK_DIM,
                 });
             });
         });
@@ -326,7 +333,9 @@ function draw2d(){
 
         rayCount++;
 
-        return closestDist;
+        closestRayPoint.dist = closestDist;
+
+        return closestRayPoint;
     }
 
     return rays;
