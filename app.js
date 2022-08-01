@@ -22,6 +22,14 @@ canvas3d.addEventListener('mousemove', e => {
 
 let mapImgData = await getImageContext('level-data.png');
 let wallImgData = await getImageContext('wall.png');
+let wallImgCachedPixels = {};
+
+for(let c = 0; c < wallImgData.width; c++){
+    for(let r = 0; r < wallImgData.height; r++){
+        let data = wallImgData.context.getImageData(c, r, 1, 1).data;
+        wallImgCachedPixels[`${c}-${r}`] = [data[0], data[1], data[2]];
+    }
+}
 
 let screenDim = {
     width: mapImgData.width * BLOCK_DIM,
@@ -116,7 +124,8 @@ function draw3d(rays){
         height = Math.ceil(height);
 
         for(let pixelY = 0; pixelY < segmentHeight; pixelY += texturePixelHeight){
-            let wallColorData = wallImgData.context.getImageData(textureMappingX, pixelY / texturePixelHeight, 1, 1).data;
+            let wallColorData = wallImgCachedPixels[`${textureMappingX}-${Math.floor(pixelY / texturePixelHeight)}`];
+            if(!wallColorData) continue;
             ctx3d.fillStyle = `rgb(${wallColorData[0]}, ${wallColorData[1]}, ${wallColorData[2]})`;
             ctx3d.fillRect(x, y + pixelY, width, texturePixelHeight);
         }
