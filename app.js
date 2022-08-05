@@ -1,8 +1,8 @@
 const BLOCK_DIM = 20;
 const MAX_SHADOW_PERC = .25;
 const PLAYER_SPEED = 1;
-const RAY_SPACE = .005;
-const RAY_AMOUNT_ONE_SIDE = 100;
+const RAY_SPACE = .01;
+const RAY_AMOUNT_ONE_SIDE = 50;
 const RAYS_SKIPPED_TO_DRAW_2D = 20;
 
 let playerAngle = 0;
