@@ -10,6 +10,21 @@ let playerAngle = 0;
 let canvas2d = document.createElement('canvas');
 document.body.appendChild(canvas2d);
 
+let canvas2dMouse = {
+    x: null,
+    y: null,
+}
+
+let mouseDown = false;
+
+canvas2d.addEventListener('mousedown', e => mouseDown = true);
+canvas2d.addEventListener('mouseup', e => mouseDown = false);
+
+canvas2d.addEventListener('mousemove', e => {
+    canvas2dMouse.x = e.offsetX;
+    canvas2dMouse.y = e.offsetY;
+});
+
 let canvas3d = document.createElement('canvas');
 document.body.appendChild(canvas3d);
 
@@ -22,13 +37,19 @@ canvas3d.addEventListener('mousemove', e => {
 
 let mapImgData = await getImageContext('level-data.png');
 let wallImgData = await getImageContext('wall.png');
-let wallImgCachedPixels = {};
 
-for(let c = 0; c < wallImgData.width; c++){
-    for(let r = 0; r < wallImgData.height; r++){
-        let data = wallImgData.context.getImageData(c, r, 1, 1).data;
-        wallImgCachedPixels[`${c}-${r}`] = [data[0], data[1], data[2]];
+let mapCachedPixels = cacheImgData(mapImgData);
+let wallImgCachedPixels = cacheImgData(wallImgData);
+
+function cacheImgData(imgData){
+    let cacheContainer = {};
+    for(let c = 0; c < imgData.width; c++){
+        for(let r = 0; r < imgData.height; r++){
+            let data = imgData.context.getImageData(c, r, 1, 1).data;
+            cacheContainer[`${c}-${r}`] = [data[0], data[1], data[2], data[3]];
+        }
     }
+    return cacheContainer;
 }
 
 let screenDim = {
@@ -169,11 +190,17 @@ function draw2d(){
     ctx.clearRect(0, 0, screenDim.width, screenDim.height);
 
     ctx.fillStyle = "#000000";
+    
+    let mouseSelX = Math.floor(canvas2dMouse.x / BLOCK_DIM) * BLOCK_DIM;
+    let mouseSelY = Math.floor(canvas2dMouse.y / BLOCK_DIM) * BLOCK_DIM;
+
+    if(mouseDown){
+        mapCachedPixels[`${mouseSelX / BLOCK_DIM}-${mouseSelY / BLOCK_DIM}`] = [0, 0, 0, 255];
+    }
 
     for(let c = 0; c < mapImgData.width; c++){
         for(let r = 0; r < mapImgData.height; r++){
-
-            let data = mapImgData.context.getImageData(c, r, 1, 1).data;
+            let data = mapCachedPixels[`${c}-${r}`];
             let color = `${data[0]}${data[1]}${data[2]}${data[3]}`;
 
             if(color === '000255') {
@@ -186,13 +213,18 @@ function draw2d(){
                     height: BLOCK_DIM,
                 };
                 ctx.fillRect(block.x, block.y, block.width, block.height);
-                if(!firstDraw){
+                if(!blocksWithPos[`${c}-${r}`]){
                     blocks.push(block);
                     blocksWithPos[`${c}-${r}`] = block;
                 }
             }
         }
     }
+
+    ctx.strokeStyle = "#FF0000";
+    ctx.beginPath();
+    ctx.rect(mouseSelX, mouseSelY, BLOCK_DIM, BLOCK_DIM);
+    ctx.stroke();
 
     blocks.every(block => {
         let cm1 = blocksWithPos[`${block.c-1}-${block.r}`];
