@@ -15,10 +15,30 @@ let canvas2dMouse = {
     y: null,
 }
 
-let mouseDown = false;
+let drawActive = false;
+let eraseActive = false;
 
-canvas2d.addEventListener('mousedown', e => mouseDown = true);
-canvas2d.addEventListener('mouseup', e => mouseDown = false);
+canvas2d.addEventListener('mousedown', e => {
+    if(e.button === 0) {
+        drawActive = true;
+        eraseActive = false;
+    }
+    else {
+        eraseActive = true;
+        drawActive = false;
+    }
+});
+
+canvas2d.addEventListener('mouseup', e => {
+    drawActive = false;
+    eraseActive = false;
+});
+
+canvas2d.addEventListener('contextmenu', e => {
+    e.preventDefault();
+    return false;
+});
+
 
 canvas2d.addEventListener('mousemove', e => {
     canvas2dMouse.x = e.offsetX;
@@ -194,8 +214,16 @@ function draw2d(){
     let mouseSelX = Math.floor(canvas2dMouse.x / BLOCK_DIM) * BLOCK_DIM;
     let mouseSelY = Math.floor(canvas2dMouse.y / BLOCK_DIM) * BLOCK_DIM;
 
-    if(mouseDown){
-        mapCachedPixels[`${mouseSelX / BLOCK_DIM}-${mouseSelY / BLOCK_DIM}`] = [0, 0, 0, 255];
+    let cachedPropName = `${mouseSelX / BLOCK_DIM}-${mouseSelY / BLOCK_DIM}`;
+
+    if(drawActive) mapCachedPixels[cachedPropName] = [0, 0, 0, 255];
+    else if(eraseActive) {
+        mapCachedPixels[cachedPropName] = [255, 255, 255, 255];
+        let bi = blocks.indexOf(blocksWithPos[cachedPropName]);
+        if(bi !== -1){
+            blocks.splice(bi, 1);
+            delete blocksWithPos[cachedPropName];
+        }
     }
 
     for(let c = 0; c < mapImgData.width; c++){
