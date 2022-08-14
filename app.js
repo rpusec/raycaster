@@ -145,7 +145,9 @@ function draw3d(rays){
 
     let maxSegmentWidth = screenDim.width / rays.length;
 
-    rays.forEach((ray, index) => {
+    rays.every((ray, index) => {
+        if(!ray.point) return true;
+
         let segmentWidth = maxSegmentWidth;
 
         let segmentHeight = (BLOCK_DIM / ray.dist) * screenDim.width;
@@ -176,6 +178,8 @@ function draw3d(rays){
 
         ctx3d.fillStyle = `rgba(0, 0, 0, ${shadowPerc})`;
         ctx3d.fillRect(x, y, width, height);
+
+        return true;
     });
 }
 
@@ -375,16 +379,23 @@ function draw2d(){
             });
         });
 
-        let closestRayPoint = rayPoints[0];
-        let closestDist = getDist(closestRayPoint.point.x, closestRayPoint.point.y, playerPosition.x, playerPosition.y);
+        let closestRayPoint = null, closestDist = null;
+        if(rayPoints.length > 0){
+            closestRayPoint = rayPoints[0];
+            closestDist = getDist(closestRayPoint.point.x, closestRayPoint.point.y, playerPosition.x, playerPosition.y);
 
-        rayPoints.forEach(rayPoint => {
-            let dist = getDist(rayPoint.point.x, rayPoint.point.y, playerPosition.x, playerPosition.y);
-            if(dist < closestDist){
-                closestRayPoint = rayPoint;
-                closestDist = dist;
-            }
-        });
+            rayPoints.forEach(rayPoint => {
+                let dist = getDist(rayPoint.point.x, rayPoint.point.y, playerPosition.x, playerPosition.y);
+                if(dist < closestDist){
+                    closestRayPoint = rayPoint;
+                    closestDist = dist;
+                }
+            });
+        }
+        else{
+            closestRayPoint = {point: null};
+            closestDist = canvas2d.width + canvas2d.height;
+        }
 
         if((rayCount % RAYS_SKIPPED_TO_DRAW_2D) === 0){
             let lineToData = {
