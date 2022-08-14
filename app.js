@@ -432,7 +432,7 @@ function draw2d(){
 
         rayCount++;
 
-        closestRayPoint.dist = closestDist;
+        closestRayPoint.dist = closestDist * Math.cos(angle - playerAngle);
 
         return closestRayPoint;
     }
