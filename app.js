@@ -56,10 +56,18 @@ canvas3d.addEventListener('mousemove', e => {
 });
 
 let mapImgData = await getImageContext('level-data.png');
-let wallImgData = await getImageContext('wall.png');
-
 let mapCachedPixels = cacheImgData(mapImgData);
-let wallImgCachedPixels = cacheImgData(wallImgData);
+
+let wallImgPaths = ['wood.png', 'brick.png', 'steel.png'];
+let wallTextures = {};
+
+for(let imgName of wallImgPaths){
+    let wallImgData = await getImageContext(`assets/${imgName}`);
+    wallTextures[imgName] = {
+        imgData: wallImgData,
+        cachedPixels: cacheImgData(wallImgData),
+    };
+}
 
 function cacheImgData(imgData){
     let cacheContainer = {};
@@ -153,8 +161,10 @@ function draw3d(rays){
         let segmentHeight = (BLOCK_DIM / ray.dist) * screenDim.width;
         if(segmentHeight < 0) segmentHeight = 0;
 
-        let textureMappingX = Math.floor(wallImgData.width * ray.offset);
-        let texturePixelHeight = segmentHeight / wallImgData.height;
+        let texture = wallTextures[ray.imgName];
+
+        let textureMappingX = Math.floor(texture.imgData.width * ray.offset);
+        let texturePixelHeight = segmentHeight / texture.imgData.height;
 
         let x = index * maxSegmentWidth;
         let y = screenDim.height / 2 - segmentHeight / 2;
@@ -167,7 +177,7 @@ function draw3d(rays){
         height = Math.ceil(height);
 
         for(let pixelY = 0; pixelY < height; pixelY += texturePixelHeight){
-            let wallColorData = wallImgCachedPixels[`${textureMappingX}-${Math.floor(pixelY / texturePixelHeight)}`];
+            let wallColorData = texture.cachedPixels[`${textureMappingX}-${Math.floor(pixelY / texturePixelHeight)}`];
             if(!wallColorData) continue;
             ctx3d.fillStyle = `rgb(${wallColorData[0]}, ${wallColorData[1]}, ${wallColorData[2]})`;
             if(pixelY + texturePixelHeight < height) ctx3d.fillRect(x, y + Math.ceil(pixelY), width, Math.ceil(texturePixelHeight));
@@ -230,6 +240,8 @@ function draw2d(){
         }
     }
 
+    let blockNum = 0, textureInd = 0;
+
     for(let c = 0; c < mapImgData.width; c++){
         for(let r = 0; r < mapImgData.height; r++){
             let data = mapCachedPixels[`${c}-${r}`];
@@ -243,11 +255,17 @@ function draw2d(){
                     y: r * BLOCK_DIM,
                     width: BLOCK_DIM,
                     height: BLOCK_DIM,
+                    imgName: wallImgPaths[textureInd],
                 };
                 ctx.fillRect(block.x, block.y, block.width, block.height);
                 if(!blocksWithPos[`${c}-${r}`]){
                     blocks.push(block);
                     blocksWithPos[`${c}-${r}`] = block;
+                }
+                blockNum++;
+                if(blockNum % 5 === 0){
+                    textureInd++;
+                    if(textureInd > wallImgPaths.length - 1) textureInd = 0;
                 }
             }
         }
@@ -375,6 +393,7 @@ function draw2d(){
                     dir: dir,
                     point: rayPoint,
                     offset: getDist(blockFromX, blockFromY, rayPoint.x, rayPoint.y) / BLOCK_DIM,
+                    imgName: block.imgName,
                 });
             });
         });
