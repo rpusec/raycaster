@@ -1,5 +1,5 @@
 const BLOCK_DIM = 20;
-const PLAYER_BLOCK = 17;
+const PLAYER_BLOCK = 16;
 const MAX_SHADOW_PERC = .25;
 const PLAYER_SPEED = 1;
 const RAY_SPACE = .01;
@@ -280,16 +280,27 @@ function draw2d(){
     ctx.stroke();
 
     let collisionRects = [];
+    let collidedBlocks = [];
+
     blocks.forEach(block => {
         if(playerBlockCollision(block)){
             collisionRects.push(getCollisionInnerRect(player, block));
+            collidedBlocks.push(block);
         }
     });
 
-    if(collisionRects.length > 0){
+    if(collisionRects.length === 1 || collisionRects.length === 2){
         let collisionRect = collisionRects.sort((r1, r2) => (r2.width + r2.height) - (r1.width + r1.height))[0];
         if(collisionRect.height < collisionRect.width) player.y = playerPrevPos.y;
         else player.x = playerPrevPos.x;
+    }
+    else if(collisionRects.length === 3){
+        while(collidedBlocks.find(block => playerBlockCollision(block))){
+            collisionRects.forEach(collisionRect => {
+                if(collisionRect.height < collisionRect.width) player.y = playerPrevPos.y;
+                else player.x = playerPrevPos.x;
+            });
+        }
     }
 
     ctx.fillStyle = "#FF0000";
