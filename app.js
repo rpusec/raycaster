@@ -1,3 +1,5 @@
+import utils from './utils.js';
+
 const BLOCK_DIM = 20;
 const PLAYER_BLOCK = 16;
 const MAX_SHADOW_PERC = .25;
@@ -94,8 +96,6 @@ canvas3d.setAttribute('height', screenDim.height);
 
 let blocks = [];
 let blocksWithPos = {};
-
-let firstDraw = false;
 
 let player = {
     x: BLOCK_DIM * 2,
@@ -202,11 +202,6 @@ function draw2d(){
 
     let _playerSpeed = PLAYER_SPEED * (running ? 4 : 1);
 
-    let playerPrevPos = {
-        x: player.x,
-        y: player.y,
-    };
-
     if(walking.up) {
         player.x += moveCos * _playerSpeed;
         player.y += moveSin * _playerSpeed;
@@ -283,8 +278,8 @@ function draw2d(){
     let collidedBlocks = [];
 
     blocks.forEach(block => {
-        if(playerBlockCollision(block)){
-            collisionRects.push(getCollisionInnerRect(player, block));
+        if(utils.playerBlockCollision(player, block)){
+            collisionRects.push(utils.getCollisionInnerRect(player, block));
             collidedBlocks.push(block);
         }
     });
@@ -294,7 +289,7 @@ function draw2d(){
             movePlayerOut(collisionRects.sort((r1, r2) => (r2.width + r2.height) - (r1.width + r1.height))[0]);
         }
         else if(collisionRects.length === 3){
-            while(collidedBlocks.find(block => playerBlockCollision(block))){
+            while(collidedBlocks.find(block => utils.playerBlockCollision(player, block))){
                 collisionRects.forEach(collisionRect => movePlayerOut(collisionRect));
             }
         }
@@ -329,8 +324,6 @@ function draw2d(){
         rays.push(getAndDrawRays(playerAngle + i * RAY_SPACE));
     }
 
-    firstDraw = true;
-
     function getAndDrawRays(angle){
         let cos = Math.cos(angle);
         let sin = Math.sin(angle);
@@ -352,7 +345,7 @@ function draw2d(){
             }
             Object.keys(rayConds).forEach(dir => {
                 let args = rayConds[dir];
-                let rayPoint = getRayPoint(args);
+                let rayPoint = utils.getRayPoint(args);
 
                 if(!rayPoint) return;
 
@@ -362,7 +355,7 @@ function draw2d(){
                 rayPoints.push({
                     dir: dir,
                     point: rayPoint,
-                    offset: getDist(blockFromX, blockFromY, rayPoint.x, rayPoint.y) / BLOCK_DIM,
+                    offset: utils.getDist(blockFromX, blockFromY, rayPoint.x, rayPoint.y) / BLOCK_DIM,
                     imgName: block.imgName,
                 });
             });
@@ -371,10 +364,10 @@ function draw2d(){
         let closestRayPoint = null, closestDist = null;
         if(rayPoints.length > 0){
             closestRayPoint = rayPoints[0];
-            closestDist = getDist(closestRayPoint.point.x, closestRayPoint.point.y, rayFromX, rayFromY);
+            closestDist = utils.getDist(closestRayPoint.point.x, closestRayPoint.point.y, rayFromX, rayFromY);
 
             rayPoints.forEach(rayPoint => {
-                let dist = getDist(rayPoint.point.x, rayPoint.point.y, rayFromX, rayFromY);
+                let dist = utils.getDist(rayPoint.point.x, rayPoint.point.y, rayFromX, rayFromY);
                 if(dist < closestDist){
                     closestRayPoint = rayPoint;
                     closestDist = dist;
@@ -426,124 +419,4 @@ function getImageContext(url) {
             });
         }
     });
-}
-
-function getRayPoint(args){
-    if(lineLine.apply(this, args)) return getLineLineInsertionPoint.apply(this, args);
-    return null;
-}
-
-function lineLine(x1, y1, x2, y2, x3, y3, x4, y4){
-    var uA = ((x4-x3)*(y1-y3) - (y4-y3)*(x1-x3)) / ((y4-y3)*(x2-x1) - (x4-x3)*(y2-y1));
-    var uB = ((x2-x1)*(y1-y3) - (y2-y1)*(x1-x3)) / ((y4-y3)*(x2-x1) - (x4-x3)*(y2-y1));
-    return uA >= 0 && uA <= 1 && uB >= 0 && uB <= 1;
-}
-
-function getLineLineInsertionPoint(x1, y1, x2, y2, x3, y3, x4, y4){
-    // Check if none of the lines are of length 0
-    if ((x1 === x2 && y1 === y2) || (x3 === x4 && y3 === y4)) {
-        return false
-    }
-
-    var denominator = ((y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1))
-
-    // Lines are parallel
-    if (denominator === 0) {
-        return false
-    }
-
-    let ua = ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / denominator
-    let ub = ((x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)) / denominator
-
-    // is the intersection along the segments
-    if (ua < 0 || ua > 1 || ub < 0 || ub > 1) {
-        return false
-    }
-
-    // Return a object with the x and y coordinates of the intersection
-    let x = x1 + ua * (x2 - x1)
-    let y = y1 + ua * (y2 - y1)
-
-    return {x, y}
-}
-
-function getDist(x1, y1, x2, y2){
-    return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
-}
-
-function playerBlockCollision(b){
-    return (
-        player.x < b.x + b.width &&
-        player.x + player.width > b.x &&
-        player.y < b.y + b.height &&
-        player.height + player.y > b.y
-    );
-}
-
-function pointBlockColl(px, py, b){
-    return px > b.x && px < b.x + b.width && py > b.y && py < b.y + b.height;
-}
-
-function getCollisionInnerRect(playerPos, block){
-    let rectInner = {};
-
-    //top
-    if(pointBlockColl(playerPos.x, playerPos.y + playerPos.height, block) && pointBlockColl(playerPos.x + playerPos.width, playerPos.y + playerPos.height, block)){
-        rectInner.x = playerPos.x;
-        rectInner.y = block.y;
-        rectInner.width = playerPos.width;
-        rectInner.height = playerPos.y + playerPos.height - block.y;
-    }
-    //bottom
-    else if(pointBlockColl(playerPos.x, playerPos.y, block) && pointBlockColl(playerPos.x + playerPos.width, playerPos.y, block)){
-        rectInner.x = playerPos.x;
-        rectInner.y = playerPos.y;
-        rectInner.width = playerPos.width;
-        rectInner.height = block.y + block.height - playerPos.y;
-    }
-    //right
-    else if(pointBlockColl(playerPos.x, playerPos.y, block) && pointBlockColl(playerPos.x, playerPos.y + playerPos.height, block)){
-        rectInner.x = playerPos.x;
-        rectInner.y = playerPos.y;
-        rectInner.width = block.x + block.width - playerPos.x;
-        rectInner.height = playerPos.height;
-    }
-    //left
-    else if(pointBlockColl(playerPos.x + playerPos.width, playerPos.y, block) && pointBlockColl(playerPos.x + playerPos.width, playerPos.y + playerPos.height, block)){
-        rectInner.x = block.x;
-        rectInner.y = playerPos.y;
-        rectInner.width = playerPos.x + playerPos.width - block.x;
-        rectInner.height = playerPos.height;
-    }
-    //top right
-    else if(pointBlockColl(playerPos.x, playerPos.y + playerPos.height, block)){
-        rectInner.x = playerPos.x;
-        rectInner.y = block.y;
-        rectInner.width = block.x + block.width - playerPos.x;
-        rectInner.height = playerPos.y + playerPos.height - block.y;
-    }
-    //top left
-    else if(pointBlockColl(playerPos.x + playerPos.width, playerPos.y + playerPos.height, block)){
-        rectInner.x = block.x;
-        rectInner.y = block.y;
-        rectInner.width = playerPos.x + playerPos.width - block.x;
-        rectInner.height = playerPos.y + playerPos.height - block.y;
-    }
-    //bottom right
-    else if(pointBlockColl(playerPos.x, playerPos.y, block)){
-        rectInner.x = playerPos.x;
-        rectInner.y = playerPos.y;
-        rectInner.width = block.x + block.width - playerPos.x;
-        rectInner.height = block.y + block.height - playerPos.y;
-    }
-    //bottom left
-    else if(pointBlockColl(playerPos.x + playerPos.width, playerPos.y, block)){
-        rectInner.x = block.x;
-        rectInner.y = playerPos.y;
-        rectInner.width = playerPos.x + playerPos.width - block.x;
-        rectInner.height = block.y + block.height - playerPos.y;
-    }
-    else rectInner = null;
-
-    return rectInner;
 }
