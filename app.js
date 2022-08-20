@@ -1,4 +1,5 @@
 const BLOCK_DIM = 20;
+const PLAYER_BLOCK = 17;
 const MAX_SHADOW_PERC = .25;
 const PLAYER_SPEED = 1;
 const RAY_SPACE = .01;
@@ -97,12 +98,10 @@ let blocksWithPos = {};
 let firstDraw = false;
 
 let player = {
-    position: {
-        x: BLOCK_DIM * 2,
-        y: BLOCK_DIM * 2,
-    },
-    width: BLOCK_DIM,
-    height: BLOCK_DIM,
+    x: BLOCK_DIM * 2,
+    y: BLOCK_DIM * 2,
+    width: PLAYER_BLOCK,
+    height: PLAYER_BLOCK,
 };
 
 let walking = {
@@ -204,25 +203,25 @@ function draw2d(){
     let _playerSpeed = PLAYER_SPEED * (running ? 4 : 1);
 
     let playerPrevPos = {
-        x: player.position.x,
-        y: player.position.y,
+        x: player.x,
+        y: player.y,
     };
 
     if(walking.up) {
-        player.position.x += moveCos * _playerSpeed;
-        player.position.y += moveSin * _playerSpeed;
+        player.x += moveCos * _playerSpeed;
+        player.y += moveSin * _playerSpeed;
     }
     if(walking.down) {
-        player.position.x -= moveCos * _playerSpeed;
-        player.position.y -= moveSin * _playerSpeed;
+        player.x -= moveCos * _playerSpeed;
+        player.y -= moveSin * _playerSpeed;
     }
     if(walking.left) {
-        player.position.x += Math.cos(playerAngle + Math.PI / 2) * _playerSpeed;
-        player.position.y += Math.sin(playerAngle + Math.PI / 2) * _playerSpeed;
+        player.x += Math.cos(playerAngle + Math.PI / 2) * _playerSpeed;
+        player.y += Math.sin(playerAngle + Math.PI / 2) * _playerSpeed;
     }
     if(walking.right) {
-        player.position.x -= Math.cos(playerAngle + Math.PI / 2) * _playerSpeed;
-        player.position.y -= Math.sin(playerAngle + Math.PI / 2) * _playerSpeed;
+        player.x -= Math.cos(playerAngle + Math.PI / 2) * _playerSpeed;
+        player.y -= Math.sin(playerAngle + Math.PI / 2) * _playerSpeed;
     }
 
     ctx.clearRect(0, 0, screenDim.width, screenDim.height);
@@ -280,18 +279,22 @@ function draw2d(){
     ctx.rect(mouseSelX, mouseSelY, BLOCK_DIM, BLOCK_DIM);
     ctx.stroke();
 
-    blocks.every(block => {
+    let collisionRects = [];
+    blocks.forEach(block => {
         if(playerBlockCollision(block)){
-            player.position.x = playerPrevPos.x;
-            player.position.y = playerPrevPos.y;
-            return false;
+            collisionRects.push(getCollisionInnerRect(player, block));
         }
-        return true;
     });
+
+    if(collisionRects.length > 0){
+        let collisionRect = collisionRects.sort((r1, r2) => (r2.width + r2.height) - (r1.width + r1.height))[0];
+        if(collisionRect.height < collisionRect.width) player.y = playerPrevPos.y;
+        else player.x = playerPrevPos.x;
+    }
 
     ctx.fillStyle = "#FF0000";
     ctx.beginPath();
-    ctx.arc(player.position.x + player.width / 2, player.position.y + player.height / 2, BLOCK_DIM / 2, 0, Math.PI * 2);
+    ctx.arc(player.x + player.width / 2, player.y + player.height / 2, BLOCK_DIM / 2, 0, Math.PI * 2);
     ctx.fill();
 
     let rays = [];
@@ -312,8 +315,8 @@ function draw2d(){
         let cos = Math.cos(angle);
         let sin = Math.sin(angle);
 
-        let rayFromX = player.position.x + player.width / 2;
-        let rayFromY = player.position.y + player.height / 2;
+        let rayFromX = player.x + player.width / 2;
+        let rayFromY = player.y + player.height / 2;
 
         let rayToX = rayFromX + cos * canvas2dRes;
         let rayToY = rayFromY + sin * canvas2dRes;
@@ -450,10 +453,10 @@ function getDist(x1, y1, x2, y2){
 
 function playerBlockCollision(b){
     return (
-        player.position.x < b.x + b.width &&
-        player.position.x + player.width > b.x &&
-        player.position.y < b.y + b.height &&
-        player.height + player.position.y > b.y
+        player.x < b.x + b.width &&
+        player.x + player.width > b.x &&
+        player.y < b.y + b.height &&
+        player.height + player.y > b.y
     );
 }
 
