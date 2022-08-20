@@ -277,68 +277,11 @@ function draw2d(){
     ctx.stroke();
 
     blocks.every(block => {
-        let cm1 = blocksWithPos[`${block.c-1}-${block.r}`];
-        let cp1 = blocksWithPos[`${block.c+1}-${block.r}`];
-        let rm1 = blocksWithPos[`${block.c}-${block.r-1}`];
-        let rp1 = blocksWithPos[`${block.c}-${block.r+1}`];
-
-        if(cm1 && cp1){
-            [cm1, block, cp1].forEach(b => {
-                if(collisionDetection(b)){
-                    let tmpY = playerPosition.y;
-                    playerPosition.y = playerPrevPos.y;
-                    if(!collisionDetection(b)) return true;
-
-                    playerPosition.y = tmpY;
-
-                    let tmpX = playerPosition.x;
-                    playerPosition.x = playerPrevPos.x;
-                    if(!collisionDetection(b)) return true;
-
-                    playerPosition.x = tmpX;
-
-                    playerPosition.x = playerPrevPos.x;
-                    playerPosition.y = playerPrevPos.y;
-                    if(!collisionDetection(b)) return true;
-
-                    playerPosition.x = tmpX;
-                    playerPosition.y = tmpY;
-                }
-            });
+        if(playerBlockCollision(block)){
+            playerPosition.x = playerPrevPos.x;
+            playerPosition.y = playerPrevPos.y;
+            return false;
         }
-
-        if(rm1 && rp1){
-            [rm1, block, rp1].forEach(b => {
-                if(collisionDetection(b)){
-                    let tmpX = playerPosition.x;
-                    playerPosition.x = playerPrevPos.x;
-                    if(!collisionDetection(b)) return true;
-
-                    playerPosition.x = tmpX;
-
-                    let tmpY = playerPosition.y;
-                    playerPosition.y = playerPrevPos.y;
-                    if(!collisionDetection(b)) return true;
-
-                    playerPosition.y = tmpY;
-
-                    playerPosition.x = playerPrevPos.x;
-                    playerPosition.y = playerPrevPos.y;
-                    if(!collisionDetection(b)) return true;
-
-                    playerPosition.x = tmpX;
-                    playerPosition.y = tmpY;
-                }
-            });
-        }
-
-        function collisionDetection(b){
-            return (
-                playerPosition.x > b.x && playerPosition.x < b.x + b.width && 
-                playerPosition.y > b.y && playerPosition.y < b.y + b.height
-            );
-        }
-
         return true;
     });
 
@@ -499,4 +442,20 @@ function getLineLineInsertionPoint(x1, y1, x2, y2, x3, y3, x4, y4){
 
 function getDist(x1, y1, x2, y2){
     return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
+}
+
+function playerBlockCollision(b){
+    let p = {
+        x: playerPosition.x - BLOCK_DIM / 2,
+        y: playerPosition.y - BLOCK_DIM / 2,
+        width: BLOCK_DIM,
+        height: BLOCK_DIM,
+    }
+
+    return (
+        p.x < b.x + b.width &&
+        p.x + p.width > b.x &&
+        p.y < b.y + b.height &&
+        p.height + p.y > b.y
+    );
 }
