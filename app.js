@@ -300,7 +300,7 @@ function draw2d(){
         }
 
         function movePlayerOut(collisionRect){
-            let offset = 1;
+            let offset = 0;
             if(collisionRect.height < collisionRect.width){
                 if(collisionRect.y + collisionRect.height / 2 < player.y + player.height / 2) player.y = collisionRect.y + collisionRect.height + offset;
                 else player.y = collisionRect.y - player.width - offset;
