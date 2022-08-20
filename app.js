@@ -289,19 +289,28 @@ function draw2d(){
         }
     });
 
-    if(collisionRects.length === 1 || collisionRects.length === 2){
-        let collisionRect = collisionRects.sort((r1, r2) => (r2.width + r2.height) - (r1.width + r1.height))[0];
-        if(collisionRect.height < collisionRect.width) player.y = playerPrevPos.y;
-        else player.x = playerPrevPos.x;
-    }
-    else if(collisionRects.length === 3){
-        while(collidedBlocks.find(block => playerBlockCollision(block))){
-            collisionRects.forEach(collisionRect => {
-                if(collisionRect.height < collisionRect.width) player.y = playerPrevPos.y;
-                else player.x = playerPrevPos.x;
-            });
+    (() => {
+        if(collisionRects.length === 1 || collisionRects.length === 2){
+            movePlayerOut(collisionRects.sort((r1, r2) => (r2.width + r2.height) - (r1.width + r1.height))[0]);
         }
-    }
+        else if(collisionRects.length === 3){
+            while(collidedBlocks.find(block => playerBlockCollision(block))){
+                collisionRects.forEach(collisionRect => movePlayerOut(collisionRect));
+            }
+        }
+
+        function movePlayerOut(collisionRect){
+            let offset = 1;
+            if(collisionRect.height < collisionRect.width){
+                if(collisionRect.y + collisionRect.height / 2 < player.y + player.height / 2) player.y = collisionRect.y + collisionRect.height + offset;
+                else player.y = collisionRect.y - player.width - offset;
+            }
+            else {
+                if(collisionRect.x + collisionRect.width / 2 < player.x + player.width / 2) player.x = collisionRect.x + collisionRect.width + offset;
+                else player.x = collisionRect.x - player.height - offset;
+            }
+        }
+    })();
 
     ctx.fillStyle = "#FF0000";
     ctx.beginPath();
