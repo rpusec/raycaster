@@ -282,10 +282,6 @@ function draw2d(){
 
     blocks.every(block => {
         if(playerBlockCollision(block)){
-
-            //bottom check
-            // if(getDist())
-
             player.position.x = playerPrevPos.x;
             player.position.y = playerPrevPos.y;
             return false;
@@ -459,4 +455,72 @@ function playerBlockCollision(b){
         player.position.y < b.y + b.height &&
         player.height + player.position.y > b.y
     );
+}
+
+function pointBlockColl(px, py, b){
+    return px > b.x && px < b.x + b.width && py > b.y && py < b.y + b.height;
+}
+
+function getCollisionInnerRect(playerPos, block){
+    let rectInner = {};
+
+    //top
+    if(pointBlockColl(playerPos.x, playerPos.y + playerPos.height, block) && pointBlockColl(playerPos.x + playerPos.width, playerPos.y + playerPos.height, block)){
+        rectInner.x = playerPos.x;
+        rectInner.y = block.y;
+        rectInner.width = playerPos.width;
+        rectInner.height = playerPos.y + playerPos.height - block.y;
+    }
+    //bottom
+    else if(pointBlockColl(playerPos.x, playerPos.y, block) && pointBlockColl(playerPos.x + playerPos.width, playerPos.y, block)){
+        rectInner.x = playerPos.x;
+        rectInner.y = playerPos.y;
+        rectInner.width = playerPos.width;
+        rectInner.height = block.y + block.height - playerPos.y;
+    }
+    //right
+    else if(pointBlockColl(playerPos.x, playerPos.y, block) && pointBlockColl(playerPos.x, playerPos.y + playerPos.height, block)){
+        rectInner.x = playerPos.x;
+        rectInner.y = playerPos.y;
+        rectInner.width = block.x + block.width - playerPos.x;
+        rectInner.height = playerPos.height;
+    }
+    //left
+    else if(pointBlockColl(playerPos.x + playerPos.width, playerPos.y, block) && pointBlockColl(playerPos.x + playerPos.width, playerPos.y + playerPos.height, block)){
+        rectInner.x = block.x;
+        rectInner.y = playerPos.y;
+        rectInner.width = playerPos.x + playerPos.width - block.x;
+        rectInner.height = playerPos.height;
+    }
+    //top right
+    else if(pointBlockColl(playerPos.x, playerPos.y + playerPos.height, block)){
+        rectInner.x = playerPos.x;
+        rectInner.y = block.y;
+        rectInner.width = block.x + block.width - playerPos.x;
+        rectInner.height = playerPos.y + playerPos.height - block.y;
+    }
+    //top left
+    else if(pointBlockColl(playerPos.x + playerPos.width, playerPos.y + playerPos.height, block)){
+        rectInner.x = block.x;
+        rectInner.y = block.y;
+        rectInner.width = playerPos.x + playerPos.width - block.x;
+        rectInner.height = playerPos.y + playerPos.height - block.y;
+    }
+    //bottom right
+    else if(pointBlockColl(playerPos.x, playerPos.y, block)){
+        rectInner.x = playerPos.x;
+        rectInner.y = playerPos.y;
+        rectInner.width = block.x + block.width - playerPos.x;
+        rectInner.height = block.y + block.height - playerPos.y;
+    }
+    //bottom left
+    else if(pointBlockColl(playerPos.x + playerPos.width, playerPos.y, block)){
+        rectInner.x = block.x;
+        rectInner.y = playerPos.y;
+        rectInner.width = playerPos.x + playerPos.width - block.x;
+        rectInner.height = block.y + block.height - playerPos.y;
+    }
+    else rectInner = null;
+
+    return rectInner;
 }
