@@ -43,6 +43,6 @@ export default {
             });
         }
 
-        return {wallTextures, wallImgPaths};
+        return {wallTextures};
     }
 }

@@ -30,7 +30,7 @@ export default {
         ctx.clearRect(0, 0, screenDim.width, screenDim.height);
         ctx.fillStyle = "#000000";
 
-        gameLogic.getBlocks().forEach(block => ctx.fillRect(block.x, block.y, block.width, block.height));
+        gameLogic.getBlocks().forEach(block => ctx.drawImage(block.imgElem, block.x, block.y, block.width, block.height));
 
         let mouseSel = gameLogic.getMouseSelCoord();
         ctx.strokeStyle = "#FF0000";

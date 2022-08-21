@@ -1,4 +1,5 @@
 import constants from "./constants.js";
+import toolbox from "./toolbox.js";
 import utils from "./utils.js";
 
 let blocks = [];
@@ -22,8 +23,6 @@ let player = {
     width: constants.PLAYER_BLOCK,
     height: constants.PLAYER_BLOCK,
 };
-
-let wallImgPaths;
 
 let canvas2dMouse = {
     x: null,
@@ -50,14 +49,12 @@ export default {
     getCanvases(){
         return {canvas2d, canvas3d};
     },
-    setupGameplay(_wallImgPaths){
+    setupGameplay(){
         for(let c = 0; c < constants.MAP_WIDTH; c++){
             for(let r = 0; r < constants.MAP_HEIGHT; r++){
                 mapData[`${c}-${r}`] = null;
             }
         }
-
-        wallImgPaths = _wallImgPaths;
 
         canvas2d = document.createElement('canvas');
         document.body.appendChild(canvas2d);
@@ -151,9 +148,7 @@ export default {
         let mouseSel = this.getMouseSelCoord();
         let cachedPropName = `${mouseSel.x / constants.BLOCK_DIM}-${mouseSel.y / constants.BLOCK_DIM}`;
 
-        if(drawActive) {
-            mapData[cachedPropName] = [0, 0, 0, 255];
-        }
+        if(drawActive) mapData[cachedPropName] = toolbox.getActiveItem();
         else if(eraseActive) {
             mapData[cachedPropName] = null;
             let bi = blocks.indexOf(blocksWithPos[cachedPropName]);
@@ -163,31 +158,24 @@ export default {
             }
         }
 
-        let blockNum = 0, textureInd = 0;
-
         for(let c = 0; c < constants.MAP_WIDTH; c++){
             for(let r = 0; r < constants.MAP_HEIGHT; r++){
                 let data = mapData[`${c}-${r}`];
+                if(data === null) continue;
 
-                if(data === '000255') {
-                    let block = {
-                        c: c,
-                        r: r,
-                        x: c * constants.BLOCK_DIM,
-                        y: r * constants.BLOCK_DIM,
-                        width: constants.BLOCK_DIM,
-                        height: constants.BLOCK_DIM,
-                        imgName: wallImgPaths[textureInd],
-                    };
-                    if(!blocksWithPos[`${c}-${r}`]){
-                        blocks.push(block);
-                        blocksWithPos[`${c}-${r}`] = block;
-                    }
-                    blockNum++;
-                    if(blockNum % 5 === 0){
-                        textureInd++;
-                        if(textureInd > wallImgPaths.length - 1) textureInd = 0;
-                    }
+                let block = {
+                    c: c,
+                    r: r,
+                    x: c * constants.BLOCK_DIM,
+                    y: r * constants.BLOCK_DIM,
+                    width: constants.BLOCK_DIM,
+                    height: constants.BLOCK_DIM,
+                };
+                if(!blocksWithPos[`${c}-${r}`]){
+                    block.imgName = data.imgName;
+                    block.imgElem = data.img;
+                    blocks.push(block);
+                    blocksWithPos[`${c}-${r}`] = block;
                 }
             }
         }
