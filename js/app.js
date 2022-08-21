@@ -7,7 +7,7 @@ let props = await assetLoader.load();
 
 toolbox.setup(props.wallTextures);
 gameLogic.setupGameplay(props.wallTextures);
-drawLogic.init(props.wallTextures);
+drawLogic.init(props.wallTextures, props.floorTextures);
 
 const updateWorld = () => {
     drawLogic.drawWorld(gameLogic.handleGameLogic());

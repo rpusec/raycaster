@@ -2,11 +2,12 @@ import constants from "./constants.js";
 import gameLogic from "./game-logic.js";
 
 let screenDim = null, ctx = null, ctx3d = null;
-let wallTextures;
+let wallTextures, floorTextures;
 
 export default {
-    init(_wallTextures){
+    init(_wallTextures, _floorTextures){
         wallTextures = _wallTextures;
+        floorTextures = _floorTextures;
 
         screenDim = {
             width: constants.MAP_WIDTH * constants.BLOCK_DIM,
@@ -21,6 +22,11 @@ export default {
         canvases.canvas3d.setAttribute('width', screenDim.width);
         canvases.canvas3d.setAttribute('height', screenDim.height);
 
+        let divFloor = document.createElement('div');
+        divFloor.classList.add('floor');
+        divFloor
+        canvases.canvas3d.parent.append(divFloor);
+
         ctx = canvases.canvas2d.getContext('2d');
         ctx3d = canvases.canvas3d.getContext('2d');
     },
@@ -28,7 +34,6 @@ export default {
         let player = gameLogic.getPlayer();
 
         ctx.clearRect(0, 0, screenDim.width, screenDim.height);
-        ctx.fillStyle = "#000000";
 
         gameLogic.getBlocks().forEach(block => ctx.drawImage(block.imgElem, block.x, block.y, block.width, block.height));
 

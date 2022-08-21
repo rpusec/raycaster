@@ -57,9 +57,7 @@ export default {
                 let data = mapData[key];
                 if(!data) return true;
 
-                data.img = document.createElement('img');
-                data.img.setAttribute('src', wallTextures[data.imgName].imgData.dataURL);
-
+                data.img = wallTextures[data.imgName].imgData.imgElem;
                 return true;
             });
         }
@@ -111,7 +109,10 @@ export default {
         });
 
         canvas3d = document.createElement('canvas');
-        document.body.appendChild(canvas3d);
+
+        let canvas3dWrapper = document.createElement('div');
+        canvas3dWrapper.append(canvas3d);
+        document.body.appendChild(canvas3dWrapper);
 
         canvas3d.addEventListener('click', () => canvas3d.requestPointerLock());
 

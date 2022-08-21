@@ -11,11 +11,10 @@ export default {
         Object.keys(wallTextures).forEach((imgName, index) => {
             let divItem = document.createElement('div');
             divItem.classList.add('item');
+
+            let img = wallTextures[imgName].imgData.imgElem;
             
-            let img = document.createElement('img');
-            img.setAttribute('src', wallTextures[imgName].imgData.dataURL);
             divItem.append(img);
-    
             divToolbox.append(divItem);
 
             let item = {

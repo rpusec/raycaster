@@ -1,14 +1,34 @@
 export default {
     async load(){
-        let wallImgPaths = ['wood.png', 'brick.png', 'steel.png'];
-        let wallTextures = {};
+        let texturePaths = [
+            {
+                imgName: 'wood.png',
+                wall: true,
+            },
+            {
+                imgName: 'brick.png',
+                wall: true,
+            },
+            {
+                imgName: 'steel.png',
+                wall: true,
+            },
+            {
+                imgName: 'floor.png',
+                wall: false,
+            },
+        ];
 
-        for(let imgName of wallImgPaths){
-            let wallImgData = await getImageContext(`assets/${imgName}`);
-            wallTextures[imgName] = {
-                imgData: wallImgData,
-                cachedPixels: cacheImgData(wallImgData),
+        let wallTextures = {}, floorTextures = {};
+
+        for(let item of texturePaths){
+            let imgData = await getImageContext(`assets/${item.imgName}`);
+            let data = {
+                imgData: imgData,
+                cachedPixels: cacheImgData(imgData),
             };
+            if(item.wall) wallTextures[item.imgName] = data;
+            else floorTextures[item.imgName] = data;
         }
 
         function cacheImgData(imgData){
@@ -33,16 +53,22 @@ export default {
                     canvas.setAttribute('width', img.width + 'px');
                     canvas.setAttribute('height', img.height + 'px');
                     context.drawImage(img, 0, 0);
+                    let dataURL = canvas.toDataURL('image/png');
                     resolve({
                         width: img.width,
                         height: img.height,
                         context: context,
-                        dataURL: canvas.toDataURL('image/png'),
+                        dataURL: dataURL,
+                        imgElem: (() => {
+                            let elem = document.createElement('img');
+                            elem.setAttribute('src', dataURL);
+                            return elem;
+                        })(),
                     });
                 }
             });
         }
 
-        return {wallTextures};
+        return {wallTextures, floorTextures};
     }
 }
