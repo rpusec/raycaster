@@ -111,6 +111,7 @@ export default {
         canvas3d = document.createElement('canvas');
 
         let canvas3dWrapper = document.createElement('div');
+        canvas3dWrapper.classList.add('wrapper');
         canvas3dWrapper.append(canvas3d);
         document.body.appendChild(canvas3dWrapper);
 

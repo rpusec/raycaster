@@ -24,8 +24,8 @@ export default {
 
         let divFloor = document.createElement('div');
         divFloor.classList.add('floor');
-        divFloor
-        canvases.canvas3d.parent.append(divFloor);
+        divFloor.style.backgroundImage = `url(${floorTextures[Object.keys(floorTextures)[0]].imgData.dataURL})`;
+        canvases.canvas3d.parentElement.append(divFloor);
 
         ctx = canvases.canvas2d.getContext('2d');
         ctx3d = canvases.canvas3d.getContext('2d');
