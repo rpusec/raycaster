@@ -5,12 +5,12 @@ let screenDim = null, ctx = null, ctx3d = null;
 let wallTextures;
 
 export default {
-    init(_wallTextures, mapImgData){
+    init(_wallTextures){
         wallTextures = _wallTextures;
 
         screenDim = {
-            width: mapImgData.width * constants.BLOCK_DIM,
-            height: mapImgData.height * constants.BLOCK_DIM,
+            width: constants.MAP_WIDTH * constants.BLOCK_DIM,
+            height: constants.MAP_HEIGHT * constants.BLOCK_DIM,
         };
 
         let canvases = gameLogic.getCanvases();

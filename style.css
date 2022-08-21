@@ -1,0 +1,41 @@
+:root{
+    --btn-light-color: #dee0ee;
+    --btn-dark-color: #8991a6;
+}
+
+body{
+    display: flex;
+}
+
+.toolbox{
+    display: flex;
+    flex-direction: column;
+    font-size: 0;
+}
+
+.toolbox > .item{
+    border-style: solid;
+    border-left-width: 2px;
+    border-top-width: 2px;
+    border-right-width: 4px;
+    border-bottom-width: 4px;
+    border-left-color: var(--btn-light-color);
+    border-top-color: var(--btn-light-color);
+    border-right-color: var(--btn-dark-color);
+    border-bottom-color: var(--btn-dark-color);
+    padding: 2px;
+    background-color: #9498b6;
+    cursor: pointer;
+    margin-bottom: 2px;
+}
+
+.toolbox > .item.active{
+    border-top-width: 4px;
+    border-left-width: 4px;
+    border-right-width: 2px;
+    border-bottom-width: 2px;
+    border-left-color: var(--btn-dark-color);
+    border-top-color: var(--btn-dark-color);
+    border-right-color: var(--btn-light-color);
+    border-bottom-color: var(--btn-light-color);
+}

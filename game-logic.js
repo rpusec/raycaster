@@ -23,7 +23,7 @@ let player = {
     height: constants.PLAYER_BLOCK,
 };
 
-let mapCachedPixels, mapImgData, wallImgPaths;
+let wallImgPaths;
 
 let canvas2dMouse = {
     x: null,
@@ -34,6 +34,8 @@ let drawActive = false;
 let eraseActive = false;
 
 let canvas2d, canvas3d;
+
+let mapData = {};
 
 export default {
     getMouseSelCoord(){
@@ -48,9 +50,13 @@ export default {
     getCanvases(){
         return {canvas2d, canvas3d};
     },
-    setupGameplay(_mapCachedPixels, _mapImgData, _wallImgPaths){
-        mapCachedPixels = _mapCachedPixels;
-        mapImgData = _mapImgData;
+    setupGameplay(_wallImgPaths){
+        for(let c = 0; c < constants.MAP_WIDTH; c++){
+            for(let r = 0; r < constants.MAP_HEIGHT; r++){
+                mapData[`${c}-${r}`] = null;
+            }
+        }
+
         wallImgPaths = _wallImgPaths;
 
         canvas2d = document.createElement('canvas');
@@ -145,9 +151,11 @@ export default {
         let mouseSel = this.getMouseSelCoord();
         let cachedPropName = `${mouseSel.x / constants.BLOCK_DIM}-${mouseSel.y / constants.BLOCK_DIM}`;
 
-        if(drawActive) mapCachedPixels[cachedPropName] = [0, 0, 0, 255];
+        if(drawActive) {
+            mapData[cachedPropName] = [0, 0, 0, 255];
+        }
         else if(eraseActive) {
-            mapCachedPixels[cachedPropName] = [255, 255, 255, 255];
+            mapData[cachedPropName] = null;
             let bi = blocks.indexOf(blocksWithPos[cachedPropName]);
             if(bi !== -1){
                 blocks.splice(bi, 1);
@@ -157,12 +165,11 @@ export default {
 
         let blockNum = 0, textureInd = 0;
 
-        for(let c = 0; c < mapImgData.width; c++){
-            for(let r = 0; r < mapImgData.height; r++){
-                let data = mapCachedPixels[`${c}-${r}`];
-                let color = `${data[0]}${data[1]}${data[2]}${data[3]}`;
+        for(let c = 0; c < constants.MAP_WIDTH; c++){
+            for(let r = 0; r < constants.MAP_HEIGHT; r++){
+                let data = mapData[`${c}-${r}`];
 
-                if(color === '000255') {
+                if(data === '000255') {
                     let block = {
                         c: c,
                         r: r,

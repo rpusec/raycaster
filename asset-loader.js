@@ -1,8 +1,5 @@
 export default {
     async load(){
-        let mapImgData = await getImageContext('level-data.png');
-        let mapCachedPixels = cacheImgData(mapImgData);
-
         let wallImgPaths = ['wood.png', 'brick.png', 'steel.png'];
         let wallTextures = {};
 
@@ -33,16 +30,19 @@ export default {
                 var canvas = document.createElement('canvas');
                 var context = canvas.getContext('2d');
                 img.onload = () => {
+                    canvas.setAttribute('width', img.width + 'px');
+                    canvas.setAttribute('height', img.height + 'px');
                     context.drawImage(img, 0, 0);
                     resolve({
                         width: img.width,
                         height: img.height,
                         context: context,
+                        dataURL: canvas.toDataURL('image/png'),
                     });
                 }
             });
         }
 
-        return {mapCachedPixels, wallTextures, mapImgData, wallImgPaths};
+        return {wallTextures, wallImgPaths};
     }
 }
