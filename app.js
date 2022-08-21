@@ -6,7 +6,7 @@ import toolbox from './toolbox.js';
 let props = await assetLoader.load();
 
 toolbox.setup(props.wallTextures);
-gameLogic.setupGameplay();
+gameLogic.setupGameplay(props.wallTextures);
 drawLogic.init(props.wallTextures);
 
 const updateWorld = () => {

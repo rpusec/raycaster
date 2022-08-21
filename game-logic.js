@@ -49,15 +49,32 @@ export default {
     getCanvases(){
         return {canvas2d, canvas3d};
     },
-    setupGameplay(){
-        for(let c = 0; c < constants.MAP_WIDTH; c++){
-            for(let r = 0; r < constants.MAP_HEIGHT; r++){
-                mapData[`${c}-${r}`] = null;
+    setupGameplay(wallTextures){
+        let storedMapData = localStorage.getItem('map-data');
+        if(storedMapData){
+            mapData = JSON.parse(storedMapData);
+            Object.keys(mapData).every(key => {
+                let data = mapData[key];
+                if(!data) return true;
+
+                data.img = document.createElement('img');
+                data.img.setAttribute('src', wallTextures[data.imgName].imgData.dataURL);
+
+                return true;
+            });
+        }
+        else{
+            for(let c = 0; c < constants.MAP_WIDTH; c++){
+                for(let r = 0; r < constants.MAP_HEIGHT; r++){
+                    mapData[`${c}-${r}`] = null;
+                }
             }
         }
 
         canvas2d = document.createElement('canvas');
         document.body.appendChild(canvas2d);
+
+        let saveMapTimeout = null;
 
         canvas2d.addEventListener('mousedown', e => {
             if(e.button === 0) {
@@ -68,11 +85,18 @@ export default {
                 eraseActive = true;
                 drawActive = false;
             }
+
+            clearTimeout(saveMapTimeout);
         });
 
         canvas2d.addEventListener('mouseup', e => {
             drawActive = false;
             eraseActive = false;
+
+            clearTimeout(saveMapTimeout);
+            saveMapTimeout = setTimeout(() => {
+                localStorage.setItem('map-data', JSON.stringify(mapData));
+            }, 2000);
         });
 
         canvas2d.addEventListener('contextmenu', e => {
@@ -148,7 +172,13 @@ export default {
         let mouseSel = this.getMouseSelCoord();
         let cachedPropName = `${mouseSel.x / constants.BLOCK_DIM}-${mouseSel.y / constants.BLOCK_DIM}`;
 
-        if(drawActive) mapData[cachedPropName] = toolbox.getActiveItem();
+        if(drawActive) {
+            let activeItem = toolbox.getActiveItem();
+            mapData[cachedPropName] = {
+                imgName: activeItem.imgName,
+                img: activeItem.img,
+            }
+        }
         else if(eraseActive) {
             mapData[cachedPropName] = null;
             let bi = blocks.indexOf(blocksWithPos[cachedPropName]);
