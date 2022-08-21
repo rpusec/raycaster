@@ -37,6 +37,9 @@ let canvas2d, canvas3d;
 let mapData = {};
 
 export default {
+    getWalkingProps(){
+        return walking
+    },
     getMouseSelCoord(){
         return {
             x: Math.floor(canvas2dMouse.x / constants.BLOCK_DIM) * constants.BLOCK_DIM,

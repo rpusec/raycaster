@@ -1,8 +1,11 @@
 import constants from "./constants.js";
 import gameLogic from "./game-logic.js";
 
-let screenDim = null, ctx = null, ctx3d = null;
+let screenDim = null, ctx = null, ctx3d = null, walking;
 let wallTextures, floorTextures;
+let divFloor;
+
+let bgPosX = 0, bgPosY = 0;
 
 export default {
     init(_wallTextures, _floorTextures){
@@ -22,13 +25,16 @@ export default {
         canvases.canvas3d.setAttribute('width', screenDim.width);
         canvases.canvas3d.setAttribute('height', screenDim.height);
 
-        let divFloor = document.createElement('div');
-        divFloor.classList.add('floor');
-        divFloor.style.backgroundImage = `url(${floorTextures[Object.keys(floorTextures)[0]].imgData.dataURL})`;
-        canvases.canvas3d.parentElement.append(divFloor);
+        let _divFloor = document.createElement('div');
+        _divFloor.classList.add('floor');
+        _divFloor.style.backgroundImage = `url(${floorTextures[Object.keys(floorTextures)[0]].imgData.dataURL})`;
+        canvases.canvas3d.parentElement.append(_divFloor);
+        divFloor = _divFloor;
 
         ctx = canvases.canvas2d.getContext('2d');
         ctx3d = canvases.canvas3d.getContext('2d');
+
+        walking = gameLogic.getWalkingProps();
     },
     drawWorld(rays){
         let player = gameLogic.getPlayer();
@@ -62,6 +68,16 @@ export default {
         });
 
         draw3d(rays);
+
+        let speed = constants.PLAYER_SPEED;
+
+        if(walking.up) bgPosY += speed;
+        if(walking.down) bgPosY -= speed;
+        if(walking.left) bgPosX += speed * 3.5;
+        if(walking.right) bgPosX -= speed * 3.5;
+
+        divFloor.style.backgroundPositionX = `${bgPosX}px`;
+        divFloor.style.backgroundPositionY = `${bgPosY}px`;
     }
 }
 
