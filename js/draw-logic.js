@@ -25,11 +25,11 @@ export default {
         canvases.canvas3d.setAttribute('width', screenDim.width);
         canvases.canvas3d.setAttribute('height', screenDim.height);
 
-        let _divFloor = document.createElement('div');
-        _divFloor.classList.add('floor');
-        _divFloor.style.backgroundImage = `url(${floorTextures[Object.keys(floorTextures)[0]].imgData.dataURL})`;
-        canvases.canvas3d.parentElement.append(_divFloor);
-        divFloor = _divFloor;
+        // let _divFloor = document.createElement('div');
+        // _divFloor.classList.add('floor');
+        // _divFloor.style.backgroundImage = `url(${floorTextures[Object.keys(floorTextures)[0]].imgData.dataURL})`;
+        // canvases.canvas3d.parentElement.append(_divFloor);
+        // divFloor = _divFloor;
 
         ctx = canvases.canvas2d.getContext('2d');
         ctx3d = canvases.canvas3d.getContext('2d');
@@ -76,8 +76,8 @@ export default {
         if(walking.left) bgPosX += speed * 3.5;
         if(walking.right) bgPosX -= speed * 3.5;
 
-        divFloor.style.backgroundPositionX = `${bgPosX}px`;
-        divFloor.style.backgroundPositionY = `${bgPosY}px`;
+        // divFloor.style.backgroundPositionX = `${bgPosX}px`;
+        // divFloor.style.backgroundPositionY = `${bgPosY}px`;
     }
 }
 
@@ -91,7 +91,7 @@ function draw3d(rays){
 
         let segmentWidth = maxSegmentWidth;
 
-        let segmentHeight = (constants.BLOCK_DIM / ray.dist) * screenDim.width;
+        let segmentHeight = (constants.BLOCK_DIM / ray.dist) * screenDim.height;
         if(segmentHeight < 0) segmentHeight = 0;
 
         let texture = wallTextures[ray.imgName];

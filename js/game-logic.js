@@ -322,6 +322,8 @@ function getAndDrawRays(angle){
         closestDist = canvas2d.width + canvas2d.height;
     }
 
+    closestDist *= Math.cos(angle - player.angle);
+
     if((rayCount % constants.RAYS_SKIPPED_TO_DRAW_2D) === 0){
         closestRayPoint.graphicsProps = {
             fromX: rayFromX,
@@ -333,7 +335,7 @@ function getAndDrawRays(angle){
 
     rayCount++;
 
-    closestRayPoint.dist = closestDist * Math.cos(angle - player.angle);
+    closestRayPoint.dist = closestDist;
 
     return closestRayPoint;
 }
