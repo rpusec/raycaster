@@ -15,7 +15,7 @@ export default {
             },
             {
                 imgName: 'floor.png',
-                wall: false,
+                wall: true,
             },
         ];
 
