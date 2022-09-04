@@ -110,10 +110,7 @@ function draw3d(rays){
         height = Math.ceil(height);
 
         for(let pixelY = 0; pixelY < height; pixelY += texturePixelHeight){
-            let pixelYIndex = pixelY / texturePixelHeight;
-            let tmp = pixelYIndex - Math.floor(pixelYIndex);
-            pixelYIndex = tmp < .5 ? Math.floor(pixelYIndex) : Math.ceil(pixelYIndex);
-            let wallColorData = texture.cachedPixels[`${textureMappingX}-${Math.floor(pixelYIndex)}`];
+            let wallColorData = texture.cachedPixels[`${textureMappingX}-${Math.round(pixelY / texturePixelHeight)}`];
             if(!wallColorData) continue;
             ctx3d.fillStyle = `rgb(${wallColorData[0]}, ${wallColorData[1]}, ${wallColorData[2]})`;
             if(pixelY + texturePixelHeight < height) ctx3d.fillRect(x, y + Math.ceil(pixelY), width, Math.ceil(texturePixelHeight));
