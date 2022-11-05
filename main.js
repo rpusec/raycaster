@@ -17,7 +17,7 @@ function createWindow () {
   mainWindow.loadFile('renderer/index.html')
 
   // Open the DevTools.
-  mainWindow.webContents.openDevTools()
+  // mainWindow.webContents.openDevTools()
 
   ipcMain.on('minimize-app', () => mainWindow.minimize());
   ipcMain.on('exit-app', () => mainWindow.close());
