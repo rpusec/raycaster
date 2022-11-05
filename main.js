@@ -1,4 +1,4 @@
-const {app, BrowserWindow} = require('electron')
+const {app, BrowserWindow, ipcMain} = require('electron')
 const path = require('path')
 
 function createWindow () {
@@ -6,7 +6,8 @@ function createWindow () {
     width: 1200,
     height: 570,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js')
+      nodeIntegration: true,
+			contextIsolation: false,
     },
     resizable: false,
     frame: false,
@@ -17,6 +18,9 @@ function createWindow () {
 
   // Open the DevTools.
   mainWindow.webContents.openDevTools()
+
+  ipcMain.on('minimize-app', () => mainWindow.minimize());
+  ipcMain.on('exit-app', () => mainWindow.close());
 }
 app.whenReady().then(() => {
   createWindow()
