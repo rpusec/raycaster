@@ -4,7 +4,7 @@ export default {
     setup(wallTextures){
         let divToolbox = document.createElement('div');
         divToolbox.classList.add('toolbox');
-        document.body.append(divToolbox);
+        document.getElementById('page').append(divToolbox);
         
         let items = [];
 

@@ -73,7 +73,7 @@ export default {
         }
 
         canvas2d = document.createElement('canvas');
-        document.body.appendChild(canvas2d);
+        document.getElementById('page').appendChild(canvas2d);
 
         let saveMapTimeout = null;
 
@@ -113,10 +113,12 @@ export default {
 
         canvas3d = document.createElement('canvas');
 
-        let canvas3dWrapper = document.createElement('div');
-        canvas3dWrapper.classList.add('wrapper');
-        canvas3dWrapper.append(canvas3d);
-        document.body.appendChild(canvas3dWrapper);
+        // let canvas3dWrapper = document.createElement('div');
+        // canvas3dWrapper.classList.add('wrapper');
+        // canvas3dWrapper.append(canvas3d);
+        // document.body.appendChild(canvas3dWrapper);
+
+        document.getElementById('page').appendChild(canvas3d);
 
         canvas3d.addEventListener('click', () => canvas3d.requestPointerLock());
 
