@@ -1,7 +1,14 @@
 {
-    "name": "raycaster",
-    "version": "1.0.0",
-    "description": "Test raycaster",
-    "author": "rpusec"
+  "name": "raycaster",
+  "version": "1.0.0",
+  "description": "Test raycaster",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "author": "rpusec",
+  "dependencies": {
+    "electron": "21.2.2"
   }
+}
   
