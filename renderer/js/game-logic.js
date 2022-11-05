@@ -24,6 +24,9 @@ let player = {
     height: constants.PLAYER_BLOCK,
 };
 
+let playerConf = localStorage.getItem('player');
+if(playerConf) player = JSON.parse(playerConf);
+
 let canvas2dMouse = {
     x: null,
     y: null,
@@ -151,7 +154,14 @@ export default {
         }
         
         document.addEventListener('keydown', handleWalking);
-        document.addEventListener('keyup', handleWalking);
+
+        let t;
+        document.addEventListener('keyup', e => {
+            handleWalking(e);
+
+            clearTimeout(t);
+            t = setTimeout(() => localStorage.setItem('player', JSON.stringify(player)), 500);
+        });
     },
     handleGameLogic(){
         let moveCos = Math.cos(player.angle);
