@@ -1,1 +1,0 @@
-const bytenode = require('bytenode');
