@@ -14,7 +14,7 @@ function createWindow () {
   })
 
   // and load the index.html of the app.
-  mainWindow.loadFile('renderer/index.html')
+  mainWindow.loadFile(__dirname + '/renderer/index.html')
 
   // Open the DevTools.
   // mainWindow.webContents.openDevTools()
