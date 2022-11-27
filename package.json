@@ -6,7 +6,6 @@
   "scripts": {
     "start": "electron-forge start",
     "package": "electron-forge package",
-    "postpackage": "node compile-to-bytenode",
     "make": "electron-forge make"
   },
   "author": "rpusec",
@@ -20,8 +19,7 @@
     "@electron-forge/maker-rpm": "^6.0.0",
     "@electron-forge/maker-squirrel": "^6.0.0",
     "@electron-forge/maker-zip": "^6.0.0",
-    "electron": "^21.2.2",
-    "@babel/preset-env": "7.20.2"
+    "electron": "^21.2.2"
   },
   "config": {
     "forge": {
