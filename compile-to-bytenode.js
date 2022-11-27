@@ -27,6 +27,7 @@ const pathModule = require('path');
         
             let compiled = await bytenode.compileElectronCode(code);
             fs.writeFileSync(newPath.replace('.js', '.jsc'), compiled, 'utf8');
+            fs.unlinkSync(newPath);
         }
     }
 })();
