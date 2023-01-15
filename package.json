@@ -10,7 +10,6 @@
   },
   "author": "rpusec",
   "dependencies": {
-    "adm-zip": "^0.5.10",
     "electron-squirrel-startup": "^1.0.0"
   },
   "devDependencies": {
