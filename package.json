@@ -10,8 +10,8 @@
   },
   "author": "rpusec",
   "dependencies": {
-    "electron-squirrel-startup": "^1.0.0",
-    "bytenode": "1.3.7"
+    "adm-zip": "^0.5.10",
+    "electron-squirrel-startup": "^1.0.0"
   },
   "devDependencies": {
     "@electron-forge/cli": "^6.0.0",
