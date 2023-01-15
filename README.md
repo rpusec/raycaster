@@ -4,7 +4,7 @@ This was a small project I started out of interest after watching a few videos o
 
 The project uses ElectronJS to render it as a desktop application, and Electron Forge for packaging and creating a distributable of the application. 
 
-### Installation ###
+## Installation ##
 
 If you're running a 32 bit version of Windows with an x64 architecture, you may download the `build-win32-x64.zip` and it should work on your machine, alternatively you can manually build the project.
 
